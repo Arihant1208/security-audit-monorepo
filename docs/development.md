@@ -10,8 +10,8 @@
 
 ```bash
 # Clone
-git clone https://github.com/Arihant1208/security-audit.git
-cd security-audit
+git clone https://github.com/Arihant1208/security-audit-monorepo.git
+cd security-audit-monorepo
 
 # Install dependencies (npm workspaces)
 npm install

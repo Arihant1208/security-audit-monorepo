@@ -19,7 +19,7 @@ Copy the agent files into your project. These are lightweight markdown files —
 ### Option A: npx degit (quickest)
 
 ```bash
-npx degit Arihant1208/security-audit/packages/client my-project
+npx degit Arihant1208/security-audit-monorepo/packages/client my-project
 ```
 
 This copies into your project root:
@@ -45,9 +45,9 @@ my-project/
 Clone the repo and copy the client directory:
 
 ```bash
-git clone https://github.com/Arihant1208/security-audit.git
-cp -r security-audit/packages/client/.github your-project/.github
-cp -r security-audit/packages/client/.vscode your-project/.vscode
+git clone https://github.com/Arihant1208/security-audit-monorepo.git
+cp -r security-audit-monorepo/packages/client/.github your-project/.github
+cp -r security-audit-monorepo/packages/client/.vscode your-project/.vscode
 ```
 
 ### Option C: Copy script
@@ -191,8 +191,8 @@ Run the MCP server as a direct subprocess inside VS Code:
 
 1. Clone and build:
    ```bash
-   git clone https://github.com/Arihant1208/security-audit.git
-   cd security-audit
+   git clone https://github.com/Arihant1208/security-audit-monorepo.git
+   cd security-audit-monorepo
    npm install
    npm run build
    ```
@@ -218,8 +218,8 @@ This runs entirely locally — no network calls, no API keys needed.
 ### Local (HTTP — with Docker)
 
 ```bash
-git clone https://github.com/Arihant1208/security-audit.git
-cd security-audit
+git clone https://github.com/Arihant1208/security-audit-monorepo.git
+cd security-audit-monorepo
 docker compose -f infra/docker-compose.yml up -d
 ```
 

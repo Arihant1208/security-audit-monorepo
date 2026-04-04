@@ -22,8 +22,8 @@ security-audit/
 ### Local Development
 
 ```bash
-git clone https://github.com/Arihant1208/security-audit.git
-cd security-audit
+git clone https://github.com/Arihant1208/security-audit-monorepo.git
+cd security-audit-monorepo
 npm install
 docker compose -f infra/docker-compose.yml up -d
 curl http://localhost:3000/health
