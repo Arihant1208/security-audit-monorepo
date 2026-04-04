@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup &amp; Usage — Security Audit Framework</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">Security Audit</a>
+      <div class="nav-links">
+        <a href="index.html#how-it-works">How It Works</a>
+        <a href="index.html#features">Features</a>
+        <a href="#setup">Setup</a>
+        <a href="#usage">Usage</a>
+        <a href="index.html#get-started" class="btn btn-sm">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" style="padding: 120px 0 48px;">
+    <div class="container">
+      <h1>Setup &amp; Usage Guide</h1>
+      <p class="hero-sub">
+        Get from zero to first audit in under 2 minutes. Works with any codebase, any language.
+      </p>
+    </div>
+  </section>
+
+  <!-- Prerequisites -->
+  <section id="prerequisites" class="section">
+    <div class="container">
+      <h2>Prerequisites</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">&#9745;</div>
+          <h3>VS Code</h3>
+          <p>Latest version with <strong>GitHub Copilot</strong> and <strong>Copilot Chat</strong> extensions installed.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">&#9745;</div>
+          <h3>Copilot Subscription</h3>
+          <p>Individual, Business, or Enterprise. Agent mode must be enabled.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">&#9745;</div>
+          <h3>API Key (optional)</h3>
+          <p>Free for remote server access. Not needed for local/stdio mode.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Setup -->
+  <section id="setup" class="section section-alt">
+    <div class="container">
+      <h2>Setup</h2>
+
+      <div class="setup-guide">
+        <div class="setup-section">
+          <h3>Step 1 — Install Client Files</h3>
+          <p>Copy agent files into your project. These are lightweight markdown files — zero dependencies, zero build step.</p>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit/packages/client my-project</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <p class="setup-note">This adds the following to your project:</p>
+          <pre class="diagram" style="max-width: 480px; font-size: 0.85rem;">your-project/
+├── .vscode/mcp.json           ← MCP connection config
+├── .github/
+│   ├── agents/
+│   │   ├── security-scanner.agent.md
+│   │   ├── security-reporter.agent.md
+│   │   └── security-fixer.agent.md
+│   └── prompts/
+│       ├── scan-codebase.prompt.md
+│       ├── generate-report.prompt.md
+│       ├── fix-vulnerabilities.prompt.md
+│       └── full-audit.prompt.md
+└── .gitignore</pre>
+        </div>
+
+        <div class="setup-section">
+          <h3>Step 2 — Connect to the MCP Server</h3>
+          <p>Open your project in VS Code. Copilot reads <code>.vscode/mcp.json</code> and prompts you for:</p>
+          <div class="config-table">
+            <table>
+              <thead><tr><th>Input</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Server URL</td><td><code>https://api.security-audit.dev/mcp</code></td></tr>
+                <tr><td>API Key</td><td>Your key from the dashboard</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="setup-note">VS Code stores the API key securely — it never appears in your project files.</p>
+        </div>
+
+        <div class="setup-section">
+          <h3>Step 3 — Verify Connection</h3>
+          <p>Open Copilot Chat and type:</p>
+          <div class="code-block">
+            <code>@security-scanner List the available security checklists</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <p class="setup-note">If the agent responds with 12 checklist layers, you're connected and ready to scan.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage -->
+  <section id="usage" class="section">
+    <div class="container">
+      <h2>Usage</h2>
+
+      <div class="setup-guide">
+        <div class="setup-section">
+          <h3>Slash Commands</h3>
+          <p>Type these in GitHub Copilot Chat to run audit workflows:</p>
+          <div class="config-table">
+            <table>
+              <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code>/full-audit</code></td><td>Run all three phases: scan → report → fix</td></tr>
+                <tr><td><code>/scan-codebase</code></td><td>Scan for vulnerabilities across 12 layers</td></tr>
+                <tr><td><code>/generate-report</code></td><td>Generate audit report + executive summary</td></tr>
+                <tr><td><code>/fix-vulnerabilities</code></td><td>Walk through fixes, highest risk first</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Agent Invocation</h3>
+          <p>Use agents directly for targeted queries:</p>
+          <div class="code-block" style="margin-bottom: 12px;">
+            <code>@security-scanner Check for SQL injection in this project</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block" style="margin-bottom: 12px;">
+            <code>@security-reporter Generate a SOC 2 compliance report</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block">
+            <code>@security-fixer Fix the XSS issue in src/search.ts</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Audit Output</h3>
+          <p>All results are written to <code>audit-results/</code> in your project:</p>
+          <pre class="diagram" style="max-width: 520px; font-size: 0.85rem;">audit-results/
+├── scan-results.md        ← Findings with severity &amp; evidence
+├── audit-report.md        ← Full technical audit report
+├── executive-summary.md   ← Leadership summary (non-technical)
+├── remediation-log.md     ← Log of applied fixes
+└── findings/
+    ├── V-001.md           ← Individual Critical/High reports
+    └── ...</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Risk Scores -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Risk Scoring</h2>
+      <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 32px;">
+        Each finding gets a risk score from 0–10 using: <code>Risk = min(10, Impact × Exploitability × Exposure + Business Context)</code>
+      </p>
+      <div class="config-table" style="max-width: 600px; margin: 0 auto;">
+        <table>
+          <thead><tr><th>Score</th><th>Level</th><th>Remediation SLA</th></tr></thead>
+          <tbody>
+            <tr><td><strong>9.0 – 10.0</strong></td><td>Critical</td><td>Fix within 24–48 hours</td></tr>
+            <tr><td><strong>7.0 – 8.9</strong></td><td>High</td><td>Fix within 1–2 weeks</td></tr>
+            <tr><td><strong>4.0 – 6.9</strong></td><td>Medium</td><td>Fix within 1–3 months</td></tr>
+            <tr><td><strong>2.0 – 3.9</strong></td><td>Low</td><td>Next development cycle</td></tr>
+            <tr><td><strong>0 – 1.9</strong></td><td>Informational</td><td>Address opportunistically</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Self-Hosting -->
+  <section id="self-hosting" class="section">
+    <div class="container">
+      <h2>Self-Hosting Options</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">A</div>
+          <h3>stdio (Local, No Network)</h3>
+          <p>Run the MCP server as a VS Code subprocess. No API key needed. Fully air-gapped.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">B</div>
+          <h3>Docker (Local HTTP)</h3>
+          <p>Run with Docker Compose. Includes PostgreSQL for key management &amp; analytics.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">C</div>
+          <h3>Cloud (Free Tier)</h3>
+          <p>Deploy to Render, Fly.io, Railway, or HF Spaces. Setup in under 5 minutes.</p>
+        </div>
+      </div>
+
+      <div class="setup-guide" style="margin-top: 40px;">
+        <div class="setup-section">
+          <h3>Option A — stdio (zero network)</h3>
+          <div class="code-block" style="margin-bottom: 12px;">
+            <code>git clone https://github.com/Arihant1208/security-audit.git &amp;&amp; cd security-audit &amp;&amp; npm install &amp;&amp; npm run build</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <p>Then update <code>.vscode/mcp.json</code> in your project:</p>
+          <pre class="diagram" style="max-width: 520px; font-size: 0.85rem;">{
+  "servers": {
+    "security-audit": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/security-audit/packages/mcp-server/dist/index.js", "--stdio"],
+      "env": {
+        "SECURITY_AUDIT_SKIP_AUTH": "true"
+      }
+    }
+  }
+}</pre>
+        </div>
+
+        <div class="setup-section">
+          <h3>Option B — Docker Compose</h3>
+          <div class="code-block" style="margin-bottom: 12px;">
+            <code>git clone https://github.com/Arihant1208/security-audit.git &amp;&amp; cd security-audit</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block" style="margin-bottom: 12px;">
+            <code>docker compose -f infra/docker-compose.yml up -d</code>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <p class="setup-note">Server runs at <code>http://localhost:3000/mcp</code> — test key: <code>sa_test_localdev1234567890abcdef</code></p>
+        </div>
+
+        <div class="setup-section">
+          <h3>Option C — Deploy to Cloud</h3>
+          <p>See the <a href="https://github.com/Arihant1208/security-audit/blob/main/docs/deployment.md">Deployment Guide</a> for one-click deploy instructions for Render, Fly.io, Railway, and Hugging Face Spaces — all on free tiers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools Reference -->
+  <section id="tools" class="section section-alt">
+    <div class="container">
+      <h2>MCP Tools Reference</h2>
+      <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 32px;">
+        12 tools are available via the MCP server. Agents call these automatically — you don't invoke them directly.
+      </p>
+      <div class="config-table" style="max-width: 800px; margin: 0 auto;">
+        <table>
+          <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>list-checklists</code></td><td>List all 12 security audit layers</td></tr>
+            <tr><td><code>get-checklist</code></td><td>Get the full checklist for a specific layer</td></tr>
+            <tr><td><code>list-attack-patterns</code></td><td>List attack patterns by category</td></tr>
+            <tr><td><code>get-attack-pattern</code></td><td>Get details for a specific attack pattern</td></tr>
+            <tr><td><code>match-vulnerabilities</code></td><td>Match code against known vulnerability patterns</td></tr>
+            <tr><td><code>calculate-risk-score</code></td><td>Calculate risk score for a finding</td></tr>
+            <tr><td><code>get-remediation</code></td><td>Get fix guidance with language-specific examples</td></tr>
+            <tr><td><code>get-report-template</code></td><td>Get audit, executive, or vulnerability templates</td></tr>
+            <tr><td><code>map-compliance</code></td><td>Map findings to OWASP, NIST, CIS, SOC 2</td></tr>
+            <tr><td><code>get-methodology</code></td><td>Get the 7-phase audit methodology</td></tr>
+            <tr><td><code>list-threat-models</code></td><td>List available threat model templates</td></tr>
+            <tr><td><code>get-threat-model</code></td><td>Get STRIDE, data flow, or threat scenario templates</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section id="troubleshooting" class="section">
+    <div class="container">
+      <h2>Troubleshooting</h2>
+      <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        <div class="card">
+          <h3>MCP server not responding</h3>
+          <p>Check the MCP indicator in the VS Code status bar. Verify your API key. For local: <code>curl http://localhost:3000/health</code></p>
+        </div>
+        <div class="card">
+          <h3>No tools available</h3>
+          <p>Restart VS Code to re-initialize the MCP connection. Check <code>.vscode/mcp.json</code> syntax. Ensure the server URL is reachable.</p>
+        </div>
+        <div class="card">
+          <h3>Agents don't appear</h3>
+          <p>Agent files must be in <code>.github/agents/</code>. Restart VS Code after adding them. Check YAML frontmatter is valid.</p>
+        </div>
+        <div class="card">
+          <h3>Scan produces no findings</h3>
+          <p>Verify MCP connection by listing checklists. Small projects may have fewer findings. Check <code>audit-results/</code> for partial output.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>Security Audit Framework</strong>
+        <p>AI-powered security auditing for modern codebases.</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <h4>Product</h4>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#pricing">Pricing</a>
+          <a href="index.html#how-it-works">How It Works</a>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <a href="https://github.com/Arihant1208/security-audit">GitHub</a>
+          <a href="setup.html">Setup &amp; Usage</a>
+          <a href="https://github.com/Arihant1208/security-audit/blob/main/docs/deployment.md">Deployment</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Security Audit Framework. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

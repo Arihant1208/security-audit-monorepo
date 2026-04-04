@@ -8,7 +8,7 @@ AI-powered security auditing for any codebase — powered by GitHub Copilot agen
 security-audit/
 ├── data/                    Security knowledge (markdown IP)
 ├── packages/
-│   ├── mcp-server/          TypeScript MCP server (10 tools)
+│   ├── mcp-server/          TypeScript MCP server (12 tools)
 │   ├── client/              Distributable agent & prompt files
 │   ├── site/                Landing page (HTML/CSS)
 │   └── db/                  PostgreSQL schema & migrations
@@ -22,7 +22,7 @@ security-audit/
 ### Local Development
 
 ```bash
-git clone https://github.com/YOUR_USER/security-audit.git
+git clone https://github.com/Arihant1208/security-audit.git
 cd security-audit
 npm install
 docker compose -f infra/docker-compose.yml up -d
@@ -44,17 +44,22 @@ Copy `packages/client/` into any project you want to audit, configure the MCP co
 | `/fix-vulnerabilities` | Walk through fixes (recommend → approve → apply) |
 | `/full-audit` | All three phases end-to-end |
 
+## Audit Coverage
+
+Scans across **12 security layers** with **31 attack patterns** across 7 categories, **7 remediation guides**, **4 compliance framework mappings** (OWASP, NIST CSF, CIS Controls, SOC 2), and a **7-phase audit methodology**.
+
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| [packages/mcp-server](packages/mcp-server) | MCP server — 10 tools, dual transport (HTTP + stdio), DB-backed auth |
+| [packages/mcp-server](packages/mcp-server) | MCP server — 12 tools, dual transport (HTTP + stdio), DB-backed auth |
 | [packages/client](packages/client) | 3 Copilot agents, 4 prompts, MCP config (zero IP — safe to distribute) |
 | [packages/site](packages/site) | Landing page — plain HTML/CSS, no build step |
 | [packages/db](packages/db) | PostgreSQL schema: users, api_keys, usage_logs |
 
 ## Documentation
 
+- [Usage Guide](docs/usage.md) — setup, first scan, commands, self-hosting, troubleshooting
 - [Architecture](docs/architecture.md) — system design, data flow, security boundaries
 - [Deployment](docs/deployment.md) — free tier deploy guides (Render, Fly, Railway, HF Spaces)
 - [Development](docs/development.md) — local setup, common tasks, code structure

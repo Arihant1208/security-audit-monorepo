@@ -75,12 +75,13 @@ Or invoke agents directly:
             │    Security Audit MCP Server    │
             │                                 │
             │  • 12 audit checklists          │
-            │  • 27 attack patterns           │
+            │  • 31 attack patterns           │
             │  • 7 remediation guides         │
             │  • Risk scoring engine          │
             │  • Compliance mappings          │
             │  • Report templates             │
             │  • 7-phase methodology          │
+            │  • Threat model templates       │
             └─────────────────────────────────┘
 ```
 

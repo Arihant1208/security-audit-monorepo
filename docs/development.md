@@ -10,7 +10,7 @@
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USER/security-audit.git
+git clone https://github.com/Arihant1208/security-audit.git
 cd security-audit
 
 # Install dependencies (npm workspaces)
@@ -118,3 +118,4 @@ docker compose -f infra/docker-compose.yml up -d
 | `tools/remediation.ts` | `get-remediation` |
 | `tools/reporting.ts` | `get-report-template`, `map-compliance` |
 | `tools/methodology.ts` | `get-methodology` |
+| `tools/threat-models.ts` | `list-threat-models`, `get-threat-model` |

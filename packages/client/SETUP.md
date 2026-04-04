@@ -45,7 +45,7 @@ If the agent replies with 12 checklist layers, the connection is working.
 
 ## Option B: Self-Hosted MCP Server (Free Tier)
 
-Deploy the MCP server for free on Render, Fly.io, or Hugging Face Spaces. See the full [Deployment Guide](../security-audit-mcp-server/DEPLOYMENT.md) in the MCP server repo.
+Deploy the MCP server for free on Render, Fly.io, or Hugging Face Spaces. See the full [Deployment Guide](../../docs/deployment.md) in the docs directory.
 
 **Quick deploy with Render (recommended):**
 
@@ -131,6 +131,8 @@ These tools are available to the agents via the MCP connection:
 | `get-report-template` | Get a report template (audit, executive, vulnerability) |
 | `map-compliance` | Map findings to compliance frameworks |
 | `get-methodology` | Get audit methodology for a specific phase |
+| `list-threat-models` | List available threat model templates |
+| `get-threat-model` | Get a specific threat model template (STRIDE, data flow, threat scenario) |
 
 ---
 

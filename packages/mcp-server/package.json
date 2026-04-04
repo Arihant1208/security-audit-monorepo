@@ -1,6 +1,6 @@
 {
   "name": "@security-audit/mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for the Security Audit Framework — serves security knowledge via Model Context Protocol",
   "type": "module",
   "main": "dist/index.js",

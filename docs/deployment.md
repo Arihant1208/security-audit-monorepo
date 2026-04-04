@@ -90,7 +90,7 @@ docker compose -f infra/docker-compose.yml up -d
 
 # Verify
 curl http://localhost:3000/health
-# {"status":"ok","server":"security-audit-mcp","version":"1.0.0"}
+# {"status":"ok","server":"security-audit-mcp","version":"1.1.0"}
 ```
 
 This starts both the MCP server and a local PostgreSQL instance with seed data. The test API key is `sa_test_localdev1234567890abcdef`.

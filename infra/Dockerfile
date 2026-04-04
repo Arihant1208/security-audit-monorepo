@@ -1,19 +1,24 @@
 # Build context: repository root (run with `docker build -f infra/Dockerfile .`)
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY packages/mcp-server/package.json packages/mcp-server/package-lock.json* ./
-RUN npm ci --ignore-scripts
-COPY packages/mcp-server/tsconfig.json ./
-COPY packages/mcp-server/src/ src/
-RUN npm run build
+
+# Install dependencies (monorepo root + mcp-server workspace)
+COPY package.json package-lock.json* ./
+COPY packages/mcp-server/package.json packages/mcp-server/
+RUN npm ci --ignore-scripts --workspace=packages/mcp-server
+
+# Build the MCP server
+COPY packages/mcp-server/tsconfig.json packages/mcp-server/
+COPY packages/mcp-server/src/ packages/mcp-server/src/
+RUN npm run build --workspace=packages/mcp-server
 
 FROM node:20-alpine
 WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=builder /app/dist dist/
+COPY --from=builder /app/packages/mcp-server/dist dist/
 COPY --from=builder /app/node_modules node_modules/
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/packages/mcp-server/package.json ./
 COPY data/ data/
 
 USER appuser

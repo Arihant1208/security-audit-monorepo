@@ -23,11 +23,14 @@ import { registerRiskScoringTools } from "./tools/risk-scoring.js";
 import { registerRemediationTools } from "./tools/remediation.js";
 import { registerReportingTools } from "./tools/reporting.js";
 import { registerMethodologyTools } from "./tools/methodology.js";
+import { registerThreatModelTools } from "./tools/threat-models.js";
+
+const VERSION = "1.1.0";
 
 function createServer(): McpServer {
   const server = new McpServer({
     name: "security-audit",
-    version: "1.0.0",
+    version: VERSION,
   });
 
   // Register all tool groups
@@ -37,6 +40,7 @@ function createServer(): McpServer {
   registerRemediationTools(server);
   registerReportingTools(server);
   registerMethodologyTools(server);
+  registerThreatModelTools(server);
 
   return server;
 }
@@ -58,8 +62,38 @@ async function startHttp(port: number): Promise<void> {
   const app = express();
   app.use(express.json());
 
+  // CORS headers for cross-origin MCP clients
+  app.use((_req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Content-Type, X-API-Key, mcp-session-id");
+    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.header("Access-Control-Expose-Headers", "mcp-session-id");
+    if (_req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
   // Session store for Streamable HTTP transport
   const sessions = new Map<string, StreamableHTTPServerTransport>();
+
+  // Clean up stale sessions every 30 minutes
+  const SESSION_TTL_MS = 30 * 60 * 1000;
+  const sessionTimestamps = new Map<string, number>();
+  setInterval(() => {
+    const now = Date.now();
+    for (const [id, ts] of sessionTimestamps) {
+      if (now - ts > SESSION_TTL_MS) {
+        const transport = sessions.get(id);
+        if (transport) {
+          transport.close().catch(() => {});
+          sessions.delete(id);
+        }
+        sessionTimestamps.delete(id);
+      }
+    }
+  }, SESSION_TTL_MS).unref();
 
   // POST /mcp — tool calls & initialization
   app.post("/mcp", async (req, res) => {
@@ -85,11 +119,18 @@ async function startHttp(port: number): Promise<void> {
         sessionIdGenerator: () => newSessionId,
       });
       sessions.set(newSessionId, transport);
+      sessionTimestamps.set(newSessionId, Date.now());
       const server = createServer();
       await server.connect(transport);
     } else {
       res.status(400).json({ error: "Bad request: no valid session" });
       return;
+    }
+
+    // Refresh session timestamp on activity
+    const activeSessionId = req.headers["mcp-session-id"] as string | undefined;
+    if (activeSessionId) {
+      sessionTimestamps.set(activeSessionId, Date.now());
     }
 
     await transport.handleRequest(req, res, req.body);
@@ -113,13 +154,14 @@ async function startHttp(port: number): Promise<void> {
       const transport = sessions.get(sessionId)!;
       await transport.close();
       sessions.delete(sessionId);
+      sessionTimestamps.delete(sessionId);
     }
     res.status(200).json({ status: "session closed" });
   });
 
   // Health check
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", server: "security-audit-mcp", version: "1.0.0" });
+    res.json({ status: "ok", server: "security-audit-mcp", version: VERSION });
   });
 
   app.listen(port, () => {

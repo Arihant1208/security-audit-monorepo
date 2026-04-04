@@ -43,10 +43,10 @@ These files contain **no security knowledge** — all expertise comes from the M
 
 ### packages/mcp-server — MCP Server (Proprietary)
 
-TypeScript/Node.js server exposing 10 tools via the Model Context Protocol:
+TypeScript/Node.js server exposing 12 tools via the Model Context Protocol:
 
 | Tool | Purpose |
-|------|---------|
+|------|--------|
 | `list-checklists` | Catalog of 12 audit layers |
 | `get-checklist` | Full checklist for one layer |
 | `list-attack-patterns` | Attack patterns by category |
@@ -57,6 +57,8 @@ TypeScript/Node.js server exposing 10 tools via the Model Context Protocol:
 | `get-report-template` | Audit/executive/vulnerability report templates |
 | `map-compliance` | Map to OWASP, NIST, CIS, SOC 2 |
 | `get-methodology` | 7-phase audit methodology |
+| `list-threat-models` | Available threat model templates |
+| `get-threat-model` | STRIDE, data flow, threat scenario templates |
 
 **Transports:**
 - **HTTP/SSE** — remote/SaaS mode with API key auth (StreamableHTTPServerTransport)
@@ -64,12 +66,13 @@ TypeScript/Node.js server exposing 10 tools via the Model Context Protocol:
 
 ### data/ — Security Knowledge (IP)
 
-78 markdown files containing all security expertise:
+81 markdown files containing all security expertise:
 - 12 audit checklists (one per security layer)
-- 27 attack patterns across 7 categories
+- 31 attack patterns across 7 categories
 - 7 remediation guides with language-specific code examples
 - 3 report templates
 - 4 compliance framework mappings
+- 3 threat model templates (STRIDE, data flow, threat scenarios)
 - Risk scoring model, methodology, threat model templates
 
 ### packages/db — Database Schema

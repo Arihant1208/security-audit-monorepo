@@ -26,6 +26,7 @@ For each relevant audit layer, use the MCP tools to get the checklist and cross-
 2. For each layer relevant to this project, call `security-audit/get-checklist` with the layer ID
 3. For each check item in the checklist, search the codebase for evidence of PASS or FAIL
 4. Call `security-audit/match-vulnerabilities` with code snippets that look suspicious, providing the language and layer context
+5. Call `security-audit/list-threat-models` to get available threat model templates and use them to guide analysis of trust boundaries and data flows
 
 Focus on these layers in order of criticality:
 - `application-security` — Input validation, injection, error handling
