@@ -1,0 +1,19 @@
+{
+  "name": "security-audit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Security Audit Framework — monorepo",
+  "workspaces": [
+    "packages/mcp-server"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/mcp-server",
+    "start": "npm run start -w packages/mcp-server",
+    "start:stdio": "npm run start:stdio -w packages/mcp-server",
+    "dev": "npm run dev -w packages/mcp-server",
+    "db:migrate": "psql $DATABASE_URL -f packages/db/migrations/001-init.sql",
+    "db:seed": "psql $DATABASE_URL -f packages/db/seed.sql",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker-compose.yml down"
+  }
+}

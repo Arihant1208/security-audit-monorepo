@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Audit Framework — AI-Powered Security Auditing</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="nav-brand">Security Audit</a>
+      <div class="nav-links">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#get-started" class="btn btn-sm">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>AI-Powered Security Auditing<br>for Any Codebase</h1>
+      <p class="hero-sub">
+        Drop three files into your project. Connect to the MCP server.
+        Run a full security audit from VS Code — scanning 12 layers, 27 attack patterns, with automated fix recommendations.
+      </p>
+      <div class="hero-actions">
+        <a href="#get-started" class="btn btn-lg">Get Your Free API Key</a>
+        <a href="https://github.com/Arihant1208/security-audit" class="btn btn-lg btn-outline">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="section">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Get an API Key</h3>
+          <p>Sign up for free. Your key connects VS Code to the security knowledge server.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Add Agent Files</h3>
+          <p>Copy 3 agent files and the MCP config into your project. Zero setup, zero dependencies.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Run the Audit</h3>
+          <p>Type <code>/full-audit</code> in Copilot Chat. The scanner finds vulnerabilities, the reporter writes the report, the fixer patches your code.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Diagram -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Architecture</h2>
+      <pre class="diagram">
+┌──────────────────────────────────────────────────┐
+│  VS Code + GitHub Copilot                        │
+│                                                  │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐   │
+│  │  Scanner   │ │  Reporter  │ │   Fixer    │   │
+│  │  Agent     │ │  Agent     │ │   Agent    │   │
+│  └─────┬──────┘ └─────┬──────┘ └─────┬──────┘   │
+│        └───────┬───────┴───────┬──────┘          │
+│                │  MCP Protocol │                 │
+└────────────────┼───────────────┼─────────────────┘
+                 │               │
+          ┌──────┴───────────────┴──────┐
+          │   Security Audit MCP Server │
+          │                             │
+          │  12 checklists              │
+          │  27 attack patterns         │
+          │  7 remediation guides       │
+          │  Risk scoring engine        │
+          │  Compliance mappings        │
+          │  Report templates           │
+          └─────────────────────────────┘</pre>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="section">
+    <div class="container">
+      <h2>What Gets Scanned</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Architecture</h3>
+          <p>Defense in depth, trust boundaries, fail-safe design</p>
+        </div>
+        <div class="card">
+          <h3>Identity &amp; Access</h3>
+          <p>Authentication, authorization, session management</p>
+        </div>
+        <div class="card">
+          <h3>Application Security</h3>
+          <p>Input validation, injection, error handling</p>
+        </div>
+        <div class="card">
+          <h3>API Security</h3>
+          <p>Auth, rate limiting, mass assignment, CORS</p>
+        </div>
+        <div class="card">
+          <h3>Data Security</h3>
+          <p>Encryption, classification, retention, DLP</p>
+        </div>
+        <div class="card">
+          <h3>Network Security</h3>
+          <p>Segmentation, TLS, DNS, DDoS protection</p>
+        </div>
+        <div class="card">
+          <h3>Infrastructure &amp; Cloud</h3>
+          <p>IAM, containers, secrets, IaC</p>
+        </div>
+        <div class="card">
+          <h3>DevOps &amp; CI/CD</h3>
+          <p>Pipeline security, artifact integrity</p>
+        </div>
+        <div class="card">
+          <h3>Supply Chain</h3>
+          <p>Dependencies, lockfiles, SBOM</p>
+        </div>
+        <div class="card">
+          <h3>Client Side</h3>
+          <p>XSS prevention, security headers, storage</p>
+        </div>
+        <div class="card">
+          <h3>Monitoring &amp; Logging</h3>
+          <p>Security logging, alerting, incident response</p>
+        </div>
+        <div class="card">
+          <h3>Business Logic</h3>
+          <p>Workflow integrity, race conditions, abuse prevention</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Numbers -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-num">12</span>
+          <span class="stat-label">Security Layers</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">27</span>
+          <span class="stat-label">Attack Patterns</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">10</span>
+          <span class="stat-label">MCP Tools</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">4</span>
+          <span class="stat-label">Compliance Frameworks</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="section">
+    <div class="container">
+      <h2>Pricing</h2>
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <h3>Free</h3>
+          <div class="price">$0<span>/month</span></div>
+          <ul>
+            <li>All 12 audit layers</li>
+            <li>All 27 attack patterns</li>
+            <li>Risk scoring &amp; compliance mapping</li>
+            <li>Unlimited local scans (stdio)</li>
+            <li>100 remote API calls/day</li>
+          </ul>
+          <a href="#get-started" class="btn">Get Started Free</a>
+        </div>
+        <div class="pricing-card featured">
+          <h3>Pro</h3>
+          <div class="price">$19<span>/month</span></div>
+          <ul>
+            <li>Everything in Free</li>
+            <li>Unlimited remote API calls</li>
+            <li>Priority support</li>
+            <li>Usage analytics dashboard</li>
+            <li>Custom compliance mappings</li>
+          </ul>
+          <a href="#get-started" class="btn">Start Pro Trial</a>
+        </div>
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>Self-hosted MCP server</li>
+            <li>Air-gapped deployment</li>
+            <li>SSO / SAML</li>
+            <li>Dedicated support</li>
+          </ul>
+          <a href="mailto:hello@security-audit.dev" class="btn btn-outline">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Get Started -->
+  <section id="get-started" class="section section-alt">
+    <div class="container">
+      <h2>Get Started in 60 Seconds</h2>
+      <div class="install-steps">
+        <div class="install-step">
+          <h3>1. Install the client files</h3>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit/packages/client my-project/.security-audit</code>
+            <button class="copy-btn" data-target="install-cmd">Copy</button>
+          </div>
+        </div>
+        <div class="install-step">
+          <h3>2. Open in VS Code and run</h3>
+          <div class="code-block">
+            <code>/full-audit</code>
+            <button class="copy-btn" data-target="audit-cmd">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>Security Audit Framework</strong>
+        <p>AI-powered security auditing for modern codebases.</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#how-it-works">How It Works</a>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <a href="https://github.com/Arihant1208/security-audit">GitHub</a>
+          <a href="docs/deployment.html">Deployment</a>
+          <a href="docs/api-keys.html">API Keys</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Security Audit Framework. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

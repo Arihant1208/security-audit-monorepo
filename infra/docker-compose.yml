@@ -1,0 +1,38 @@
+# Local development stack
+# Run from repo root: docker compose -f infra/docker-compose.yml up -d
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: secaudit
+      POSTGRES_PASSWORD: secaudit_local
+      POSTGRES_DB: secaudit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../packages/db/migrations/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql
+      - ../packages/db/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secaudit"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://secaudit:secaudit_local@db:5432/secaudit
+      SECURITY_AUDIT_API_KEYS: sa_test_localdev1234567890abcdef
+      PORT: "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build artifacts
+*.tgz
+
+# Audit output (generated per-project)
+audit-results/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Docker
+*.log
+
+# Postgres data (docker-compose volume)
+pgdata/

@@ -1,0 +1,18 @@
+# Render Blueprint — one-click deploy
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: security-audit-mcp
+    runtime: docker
+    dockerfilePath: infra/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: SECURITY_AUDIT_API_KEYS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: "3000"
