@@ -41,7 +41,7 @@
       "command": "npm start",
       "isBackground": true,
       "options": {
-        "env": { "SECURITY_AUDIT_SKIP_AUTH": "true" }
+        "env": { "SECURITY_AUDIT_SKIP_AUTH": "true", "PORT": "3334" }
       },
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" },
@@ -54,6 +54,7 @@
       "isBackground": true,
       "options": {
         "env": {
+          "PORT": "3334",
           "DATABASE_URL": "postgresql://steve:steve_local@localhost:5433/steve",
           "SECURITY_AUDIT_API_KEYS": "steve_test_localdev1234567890abcdef"
         }
@@ -110,7 +111,13 @@
     {
       "label": "Health Check",
       "type": "shell",
-      "command": "Invoke-RestMethod http://localhost:3000/health | ConvertTo-Json",
+      "command": "Invoke-RestMethod http://localhost:3334/health | ConvertTo-Json",
+      "problemMatcher": []
+    },
+    {
+      "label": "Kill Port 3334",
+      "type": "shell",
+      "command": "$p = Get-NetTCPConnection -LocalPort 3334 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess; if ($p) { Stop-Process -Id $p -Force; Write-Host 'Killed PID' $p } else { Write-Host 'Port 3334 is free' }",
       "problemMatcher": []
     }
   ]
