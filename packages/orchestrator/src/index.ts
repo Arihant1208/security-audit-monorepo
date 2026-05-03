@@ -16,7 +16,10 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express from "express";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { requireAuth } from "./auth.js";
+import { apiRouter } from "./api.js";
 
 // ── Tool registrations ──────────────────────────────────────────────────────
 import { registerChecklistTools } from "./tools/checklists.js";
@@ -177,6 +180,23 @@ async function startHttp(port: number): Promise<void> {
       tools: 19,
       phases: 9,
     });
+  });
+
+  // ── Website API ────────────────────────────────────────────────────────
+  app.use("/api", apiRouter);
+
+  // ── Static site serving ────────────────────────────────────────────────
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const siteDir = join(__dirname, "..", "..", "site");
+  app.use(express.static(siteDir));
+  // SPA fallback — serve index.html for unmatched routes (but not /mcp or /api)
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/mcp") || req.path.startsWith("/api") || req.path.startsWith("/health")) {
+      next();
+      return;
+    }
+    res.sendFile(join(siteDir, "index.html"));
   });
 
   app.listen(port, () => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Security Audit Framework — AI-Powered Security Auditing</title>
+  <title>Steve — End-to-End Autonomous Security Agent</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,13 +11,14 @@
   <!-- Nav -->
   <nav class="nav">
     <div class="container nav-inner">
-      <a href="#" class="nav-brand">Security Audit</a>
+      <a href="/" class="nav-brand"><span class="logo">&#128373;</span> Steve</a>
       <div class="nav-links">
         <a href="#how-it-works">How It Works</a>
         <a href="#features">Features</a>
-        <a href="setup.html">Setup &amp; Usage</a>
+        <a href="docs.html">Docs</a>
         <a href="#pricing">Pricing</a>
-        <a href="#get-started" class="btn btn-sm">Get Started</a>
+        <a href="dashboard.html" class="nav-user hidden" id="nav-dashboard">Dashboard</a>
+        <a href="signup.html" class="btn btn-sm" id="nav-cta">Get Started</a>
       </div>
     </div>
   </nav>
@@ -25,148 +26,195 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <h1>AI-Powered Security Auditing<br>for Any Codebase</h1>
+      <h1>Meet <span class="highlight">Steve</span><br>Your Autonomous Security Agent</h1>
       <p class="hero-sub">
-        Drop three files into your project. Connect to the MCP server.
-        Run a full security audit from VS Code — scanning 12 layers, 31 attack patterns, with automated fix recommendations.
+        Point Steve at any codebase and get a full security audit — business context, architecture diagrams,
+        12-layer vulnerability scan, license compliance, AI opportunity analysis, and a prioritized fix plan.
+        All autonomous. All in one command.
       </p>
       <div class="hero-actions">
-        <a href="#get-started" class="btn btn-lg">Get Your Free API Key</a>
-        <a href="https://github.com/Arihant1208/security-audit-monorepo" class="btn btn-lg btn-outline">View on GitHub</a>
+        <a href="signup.html" class="btn btn-lg">Get Your Free API Key</a>
+        <a href="docs.html" class="btn btn-lg btn-outline">Read the Docs</a>
       </div>
     </div>
   </section>
 
-  <!-- How It Works -->
-  <section id="how-it-works" class="section">
+  <!-- How It Works: 9-Phase Pipeline -->
+  <section id="how-it-works" class="section section-alt">
     <div class="container">
-      <h2>How It Works</h2>
+      <h2>The 9-Phase Pipeline</h2>
+      <p style="text-align:center; color:var(--text-muted); margin:-32px auto 40px; max-width:600px;">
+        Steve doesn't just scan for vulnerabilities. It understands your business, maps your architecture, and produces reports your CTO can read.
+      </p>
+      <div class="pipeline">
+        <div class="pipeline-phase">
+          <div class="phase-num">0</div>
+          <h4>Business Discovery</h4>
+          <p>Understands what you build &amp; why</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">1</div>
+          <h4>System Discovery</h4>
+          <p>Maps stack, deps &amp; entry points</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">2</div>
+          <h4>Architecture Mapping</h4>
+          <p>Generates Mermaid diagrams</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">3</div>
+          <h4>Threat Modeling</h4>
+          <p>STRIDE per component</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">4</div>
+          <h4>Security Audit</h4>
+          <p>Scans across 12 layers</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">5</div>
+          <h4>License Compliance</h4>
+          <p>Checks every dependency</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">6</div>
+          <h4>AI Opportunities</h4>
+          <p>Where AI/ML can help</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">7</div>
+          <h4>Risk &amp; Remediation</h4>
+          <p>Scored findings + fix plan</p>
+        </div>
+        <div class="pipeline-phase">
+          <div class="phase-num">8</div>
+          <h4>Report Generation</h4>
+          <p>Executive + technical reports</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="section">
+    <div class="container">
+      <h2>Start in 60 Seconds</h2>
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
           <h3>Get an API Key</h3>
-          <p>Sign up for free. Your key connects VS Code to the security knowledge server.</p>
+          <p>Sign up for free. Your key connects VS Code to Steve's knowledge server.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <h3>Add Agent Files</h3>
-          <p>Copy 3 agent files and the MCP config into your project. Zero setup, zero dependencies.</p>
+          <p>Copy the Steve agent file and MCP config into your project. Zero dependencies.</p>
         </div>
         <div class="step">
           <div class="step-num">3</div>
           <h3>Run the Audit</h3>
-          <p>Type <code>/full-audit</code> in Copilot Chat. The scanner finds vulnerabilities, the reporter writes the report, the fixer patches your code.</p>
+          <p>Type <code style="background:var(--bg);padding:2px 8px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">/steve-audit</code> in Copilot Chat. Steve does the rest.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Architecture Diagram -->
+  <!-- Architecture -->
   <section class="section section-alt">
     <div class="container">
       <h2>Architecture</h2>
       <pre class="diagram">
-┌──────────────────────────────────────────────────┐
-│  VS Code + GitHub Copilot                        │
-│                                                  │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐   │
-│  │  Scanner   │ │  Reporter  │ │   Fixer    │   │
-│  │  Agent     │ │  Agent     │ │   Agent    │   │
-│  └─────┬──────┘ └─────┬──────┘ └─────┬──────┘   │
-│        └───────┬───────┴───────┬──────┘          │
-│                │  MCP Protocol │                 │
-└────────────────┼───────────────┼─────────────────┘
-                 │               │
-          ┌──────┴───────────────┴──────┐
-          │   Security Audit MCP Server │
-          │                             │
-          │  12 checklists              │
-          │  31 attack patterns         │
-          │  7 remediation guides       │
-          │  Risk scoring engine        │
-          │  Compliance mappings        │
-          │  Report templates           │
-          └─────────────────────────────┘</pre>
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  User Interfaces                                    &#9474;
+  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;
+  &#9474;  &#9474; VS Code &#9474;  &#9474;  CLI   &#9474;  &#9474;  Web Dashboard    &#9474;  &#9474;
+  &#9474;  &#9474;  Agent  &#9474;  &#9474; (steve)&#9474;  &#9474;  (this website)   &#9474;  &#9474;
+  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9492;
+       &#9474; MCP       &#9474; MCP          &#9474; REST
+       &#9660;           &#9660;              &#9660;
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  Orchestrator (MCP Server + Pipeline Engine)        &#9474;
+  &#9474;  19 tools &#8226; 9-phase pipeline &#8226; dual transport       &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                        &#9474; HTTP
+                        &#9660;
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  AI Engine (Python FastAPI)                         &#9474;
+  &#9474;  Code analysis &#8226; Diagrams &#8226; License &#8226; AI ops        &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                        &#9474;
+                        &#9660;
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  Knowledge (data/) + PostgreSQL (state/auth)        &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</pre>
     </div>
   </section>
 
   <!-- Features -->
   <section id="features" class="section">
     <div class="container">
-      <h2>What Gets Scanned</h2>
+      <h2>What Steve Covers <span class="badge">19 TOOLS</span></h2>
       <div class="grid">
         <div class="card">
-          <h3>Architecture</h3>
-          <p>Defense in depth, trust boundaries, fail-safe design</p>
+          <span class="card-icon">&#128188;</span>
+          <h3>Business-First Analysis</h3>
+          <p>Steve understands your industry, data sensitivity, and compliance needs before scanning a single line of code.</p>
         </div>
         <div class="card">
-          <h3>Identity &amp; Access</h3>
-          <p>Authentication, authorization, session management</p>
+          <span class="card-icon">&#128506;</span>
+          <h3>Auto Architecture Diagrams</h3>
+          <p>Generates C4 system-context, container, data-flow, deployment, and threat-boundary Mermaid diagrams automatically.</p>
         </div>
         <div class="card">
-          <h3>Application Security</h3>
-          <p>Input validation, injection, error handling</p>
+          <span class="card-icon">&#128274;</span>
+          <h3>12-Layer Security Audit</h3>
+          <p>Architecture, identity, app security, API, data, network, infrastructure, DevOps, supply chain, client-side, monitoring, business logic.</p>
         </div>
         <div class="card">
-          <h3>API Security</h3>
-          <p>Auth, rate limiting, mass assignment, CORS</p>
+          <span class="card-icon">&#128270;</span>
+          <h3>31+ Attack Patterns</h3>
+          <p>SQL injection, XSS, CSRF, SSRF, command injection, broken access control, insecure deserialization, and more.</p>
         </div>
         <div class="card">
-          <h3>Data Security</h3>
-          <p>Encryption, classification, retention, DLP</p>
+          <span class="card-icon">&#128220;</span>
+          <h3>License Compliance</h3>
+          <p>Scans every dependency, classifies licenses (MIT, Apache, GPL, etc.), detects conflicts, and suggests alternatives.</p>
         </div>
         <div class="card">
-          <h3>Network Security</h3>
-          <p>Segmentation, TLS, DNS, DDoS protection</p>
+          <span class="card-icon">&#129302;</span>
+          <h3>AI Opportunity Analysis</h3>
+          <p>Identifies where AI/ML can strengthen security or improve the system — anomaly detection, smart alerting, predictive analytics.</p>
         </div>
         <div class="card">
-          <h3>Infrastructure &amp; Cloud</h3>
-          <p>IAM, containers, secrets, IaC</p>
+          <span class="card-icon">&#128200;</span>
+          <h3>Risk Scoring</h3>
+          <p>Every finding gets a 0-10 risk score using Impact x Exploitability x Exposure + Business Context.</p>
         </div>
         <div class="card">
-          <h3>DevOps &amp; CI/CD</h3>
-          <p>Pipeline security, artifact integrity</p>
+          <span class="card-icon">&#128203;</span>
+          <h3>4 Compliance Frameworks</h3>
+          <p>Maps findings to OWASP Top 10, NIST CSF, CIS Controls, and SOC 2 — ready for auditors.</p>
         </div>
         <div class="card">
-          <h3>Supply Chain</h3>
-          <p>Dependencies, lockfiles, SBOM</p>
-        </div>
-        <div class="card">
-          <h3>Client Side</h3>
-          <p>XSS prevention, security headers, storage</p>
-        </div>
-        <div class="card">
-          <h3>Monitoring &amp; Logging</h3>
-          <p>Security logging, alerting, incident response</p>
-        </div>
-        <div class="card">
-          <h3>Business Logic</h3>
-          <p>Workflow integrity, race conditions, abuse prevention</p>
+          <span class="card-icon">&#128736;</span>
+          <h3>Prioritized Remediation</h3>
+          <p>Actionable fix plan ranked by risk. Code examples in your language. Estimated effort per fix.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Numbers -->
+  <!-- Stats -->
   <section class="section section-alt">
     <div class="container">
       <div class="stats">
-        <div class="stat">
-          <span class="stat-num">12</span>
-          <span class="stat-label">Security Layers</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">31</span>
-          <span class="stat-label">Attack Patterns</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">12</span>
-          <span class="stat-label">MCP Tools</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">4</span>
-          <span class="stat-label">Compliance Frameworks</span>
-        </div>
+        <div class="stat"><span class="stat-num">9</span><span class="stat-label">Pipeline Phases</span></div>
+        <div class="stat"><span class="stat-num">19</span><span class="stat-label">MCP Tools</span></div>
+        <div class="stat"><span class="stat-num">12</span><span class="stat-label">Security Layers</span></div>
+        <div class="stat"><span class="stat-num">31+</span><span class="stat-label">Attack Patterns</span></div>
+        <div class="stat"><span class="stat-num">4</span><span class="stat-label">Compliance Frameworks</span></div>
       </div>
     </div>
   </section>
@@ -180,13 +228,14 @@
           <h3>Free</h3>
           <div class="price">$0<span>/month</span></div>
           <ul>
-            <li>All 12 audit layers</li>
-            <li>All 31 attack patterns</li>
-            <li>Risk scoring &amp; compliance mapping</li>
+            <li>All 9 pipeline phases</li>
+            <li>All 19 MCP tools</li>
+            <li>Architecture diagrams</li>
+            <li>License compliance scan</li>
             <li>Unlimited local scans (stdio)</li>
             <li>100 remote API calls/day</li>
           </ul>
-          <a href="#get-started" class="btn">Get Started Free</a>
+          <a href="signup.html" class="btn">Get Started Free</a>
         </div>
         <div class="pricing-card featured">
           <h3>Pro</h3>
@@ -194,58 +243,41 @@
           <ul>
             <li>Everything in Free</li>
             <li>Unlimited remote API calls</li>
+            <li>Reports dashboard</li>
+            <li>Usage analytics</li>
             <li>Priority support</li>
-            <li>Usage analytics dashboard</li>
             <li>Custom compliance mappings</li>
           </ul>
-          <a href="#get-started" class="btn">Start Pro Trial</a>
+          <a href="signup.html" class="btn">Start Pro Trial</a>
         </div>
         <div class="pricing-card">
           <h3>Enterprise</h3>
           <div class="price">Custom</div>
           <ul>
             <li>Everything in Pro</li>
-            <li>Self-hosted MCP server</li>
-            <li>Air-gapped deployment</li>
+            <li>Self-hosted deployment</li>
+            <li>Air-gapped / private cloud</li>
             <li>SSO / SAML</li>
+            <li>Custom integrations</li>
             <li>Dedicated support</li>
           </ul>
-          <a href="mailto:hello@security-audit.dev" class="btn btn-outline">Contact Sales</a>
+          <a href="mailto:hello@steve.security" class="btn btn-outline">Contact Sales</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Get Started -->
-  <section id="get-started" class="section section-alt">
-    <div class="container">
-      <h2>Get Started in 60 Seconds</h2>
-      <div class="install-steps">
-        <div class="install-step">
-          <h3>1. Install the client files</h3>
-          <div class="code-block">
-            <code>npx degit Arihant1208/security-audit-monorepo/packages/client my-project</code>
-            <button class="copy-btn">Copy</button>
-          </div>
-        </div>
-        <div class="install-step">
-          <h3>2. Open in VS Code — enter your MCP server URL and API key when prompted</h3>
-          <div class="code-block">
-            <code>https://api.security-audit.dev/mcp</code>
-            <button class="copy-btn">Copy</button>
-          </div>
-        </div>
-        <div class="install-step">
-          <h3>3. Run your first audit</h3>
-          <div class="code-block">
-            <code>/full-audit</code>
-            <button class="copy-btn">Copy</button>
-          </div>
-        </div>
-      </div>
-      <p style="text-align: center; margin-top: 24px; color: var(--color-text-muted);">
-        Want self-hosted or local setup? See the <a href="setup.html">full Setup &amp; Usage Guide</a>.
+  <!-- CTA -->
+  <section class="section section-alt">
+    <div class="container" style="text-align:center;">
+      <h2>Ready to Secure Your Codebase?</h2>
+      <p style="color:var(--text-muted); margin:-32px auto 32px; max-width:500px;">
+        Sign up in 30 seconds, get your API key, and run your first audit today.
       </p>
+      <div class="hero-actions">
+        <a href="signup.html" class="btn btn-lg">Get Your Free API Key</a>
+        <a href="docs.html" class="btn btn-lg btn-outline">Read the Docs</a>
+      </div>
     </div>
   </section>
 
@@ -253,8 +285,8 @@
   <footer class="footer">
     <div class="container footer-inner">
       <div class="footer-brand">
-        <strong>Security Audit Framework</strong>
-        <p>AI-powered security auditing for modern codebases.</p>
+        <strong>&#128373; Steve Security Agent</strong>
+        <p>End-to-end autonomous security auditing.</p>
       </div>
       <div class="footer-links">
         <div>
@@ -265,15 +297,20 @@
         </div>
         <div>
           <h4>Resources</h4>
+          <a href="docs.html">Documentation</a>
+          <a href="docs.html#best-practices">Best Practices</a>
           <a href="https://github.com/Arihant1208/security-audit-monorepo">GitHub</a>
-          <a href="setup.html">Setup &amp; Usage</a>
-          <a href="https://github.com/Arihant1208/security-audit-monorepo/blob/main/docs/deployment.md">Deployment</a>
-          <a href="https://github.com/Arihant1208/security-audit-monorepo/blob/main/docs/api-keys.md">API Keys</a>
+        </div>
+        <div>
+          <h4>Account</h4>
+          <a href="signup.html">Sign Up</a>
+          <a href="login.html">Log In</a>
+          <a href="dashboard.html">Dashboard</a>
         </div>
       </div>
     </div>
     <div class="container footer-bottom">
-      <p>&copy; 2026 Security Audit Framework. All rights reserved.</p>
+      <p>&copy; 2026 Steve Security Agent. All rights reserved.</p>
     </div>
   </footer>
 

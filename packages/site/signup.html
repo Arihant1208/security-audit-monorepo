@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — Steve Security Agent</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-brand"><span class="logo">&#128373;</span> Steve</a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="docs.html">Docs</a>
+        <a href="login.html" class="btn btn-sm btn-outline">Log In</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero-mini">
+    <div class="container">
+      <h1>Create Your Account</h1>
+      <p>Get your free API key and start auditing in under a minute.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="form-container">
+      <div class="form-card">
+        <h2>Sign Up</h2>
+        <p class="form-sub">Free forever. No credit card required.</p>
+
+        <form id="signup-form">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Your name" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="form-error" id="signup-error"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Create Account</button>
+          </div>
+        </form>
+
+        <p class="form-footer">Already have an account? <a href="login.html">Log in</a></p>
+      </div>
+
+      <!-- Success state (hidden by default) -->
+      <div class="form-card hidden" id="signup-success">
+        <h2 style="color:var(--success);">You're In!</h2>
+        <p class="form-sub">Your account is ready. Here's your API key:</p>
+
+        <div class="key-reveal" id="new-api-key"></div>
+
+        <div class="alert alert-warning" style="margin-top:16px;">
+          <strong>Save this key now</strong> — you won't see it again. Store it somewhere secure.
+        </div>
+
+        <div class="setup-section" style="margin-top:24px;">
+          <h3>Quick Setup</h3>
+          <p>Install Steve's agent files into your project:</p>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p style="margin-top:12px;">Then open VS Code and type <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">/steve-audit</code> in Copilot Chat.</p>
+        </div>
+
+        <div class="form-actions" style="margin-top:24px;">
+          <a href="dashboard.html" class="btn">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Steve Security Agent. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

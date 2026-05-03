@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — Steve Security Agent</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-brand"><span class="logo">&#128373;</span> Steve</a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="docs.html" class="active">Docs</a>
+        <a href="dashboard.html" class="nav-user hidden" id="nav-dashboard">Dashboard</a>
+        <a href="signup.html" class="btn btn-sm" id="nav-cta">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero-mini">
+    <div class="container">
+      <h1>Documentation</h1>
+      <p>Everything you need to get the best results from Steve.</p>
+    </div>
+  </section>
+
+  <!-- Quick Nav -->
+  <section class="section" style="padding-top:0; padding-bottom:40px;">
+    <div class="container">
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <a href="#quick-start" class="card" style="text-decoration:none;text-align:center;padding:16px;">
+          <h3>Quick Start</h3>
+          <p>First audit in 60 seconds</p>
+        </a>
+        <a href="#setup-modes" class="card" style="text-decoration:none;text-align:center;padding:16px;">
+          <h3>Setup Modes</h3>
+          <p>Remote, local, Docker</p>
+        </a>
+        <a href="#commands" class="card" style="text-decoration:none;text-align:center;padding:16px;">
+          <h3>Commands</h3>
+          <p>All Steve commands</p>
+        </a>
+        <a href="#best-practices" class="card" style="text-decoration:none;text-align:center;padding:16px;">
+          <h3>Best Practices</h3>
+          <p>Get the best results</p>
+        </a>
+        <a href="#tools" class="card" style="text-decoration:none;text-align:center;padding:16px;">
+          <h3>Tools Reference</h3>
+          <p>All 19 MCP tools</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section id="quick-start" class="section section-alt">
+    <div class="container">
+      <h2>Quick Start</h2>
+      <div class="setup-guide">
+
+        <div class="setup-section">
+          <h3>Step 1 — Get Your API Key</h3>
+          <p><a href="signup.html">Sign up for free</a> and you'll receive your API key instantly. Save it somewhere secure.</p>
+        </div>
+
+        <div class="setup-section">
+          <h3>Step 2 — Install Steve Agent Files</h3>
+          <p>Copy the Steve agent file and MCP connection config into your project:</p>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p style="margin-top: 12px;">This adds these files to your project (zero dependencies, no build step):</p>
+          <pre class="diagram" style="max-width: 460px; font-size: 0.85rem;">your-project/
+├── .vscode/mcp.json                  ← MCP config
+├── .github/
+│   ├── agents/steve.agent.md         ← Steve agent
+│   └── prompts/
+│       ├── steve-audit.prompt.md     ← Full audit
+│       ├── steve-scan.prompt.md      ← Quick scan
+│       ├── steve-license.prompt.md   ← License check
+│       └── steve-diagram.prompt.md   ← Diagrams</pre>
+        </div>
+
+        <div class="setup-section">
+          <h3>Step 3 — Connect</h3>
+          <p>Open your project in VS Code. It will read <code>.vscode/mcp.json</code> and prompt for your API key. Enter it once — VS Code stores it securely.</p>
+          <div class="tip-box">
+            <strong>Tip:</strong> The MCP connection indicator appears in the VS Code status bar. If it's green, you're connected.
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Step 4 — Run Your First Audit</h3>
+          <p>Open GitHub Copilot Chat and type:</p>
+          <div class="code-block">
+            <code>/steve-audit</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p style="margin-top: 12px;">Steve will autonomously run all 9 phases and produce reports in <code>audit-results/</code>.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Setup Modes -->
+  <section id="setup-modes" class="section">
+    <div class="container">
+      <h2>Setup Modes</h2>
+      <div class="setup-guide">
+
+        <div class="setup-section">
+          <h3>Option A — Remote Server (Recommended)</h3>
+          <p>Use the hosted Steve server. Just needs an API key — no local installation.</p>
+          <div class="tip-box">
+            <strong>Best for:</strong> Teams, quick setup, zero maintenance. Works from any machine.
+          </div>
+          <p>The <code>.vscode/mcp.json</code> included with the agent files is pre-configured for remote mode.</p>
+        </div>
+
+        <div class="setup-section">
+          <h3>Option B — stdio (Local, Air-Gapped)</h3>
+          <p>Run Steve as a VS Code subprocess. No network. No API key needed.</p>
+          <div class="code-block" style="margin-bottom:12px;">
+            <code>git clone https://github.com/Arihant1208/security-audit-monorepo.git && cd security-audit-monorepo && npm install && npm run build</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p>Update <code>.vscode/mcp.json</code> in your project:</p>
+          <pre class="diagram" style="max-width:520px;font-size:0.85rem;">{
+  "servers": {
+    "steve-security-agent": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/security-audit/packages/orchestrator/dist/index.js", "--stdio"],
+      "env": { "SECURITY_AUDIT_SKIP_AUTH": "true" }
+    }
+  }
+}</pre>
+          <div class="tip-box">
+            <strong>Best for:</strong> Regulated environments, air-gapped networks, enterprise policies that prohibit external services.
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Option C — Docker Compose (Local HTTP)</h3>
+          <p>Run the full stack locally with database, AI engine, and dashboard.</p>
+          <div class="code-block" style="margin-bottom:12px;">
+            <code>git clone https://github.com/Arihant1208/security-audit-monorepo.git && cd security-audit-monorepo</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block" style="margin-bottom:12px;">
+            <code>docker compose -f infra/docker-compose.yml up -d</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p>Test key: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">sa_test_localdev1234567890abcdef</code></p>
+          <p>Server: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">http://localhost:3000/mcp</code></p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Commands -->
+  <section id="commands" class="section section-alt">
+    <div class="container">
+      <h2>Commands</h2>
+      <div class="setup-guide">
+
+        <div class="setup-section">
+          <h3>VS Code Prompt Commands</h3>
+          <p>Type these in GitHub Copilot Chat:</p>
+          <div class="config-table">
+            <table>
+              <thead><tr><th>Command</th><th>What It Does</th><th>Phases</th></tr></thead>
+              <tbody>
+                <tr><td><code>/steve-audit</code></td><td>Full autonomous end-to-end security audit</td><td>All 9</td></tr>
+                <tr><td><code>/steve-scan</code></td><td>Quick security scan — discovery + audit only</td><td>0, 1, 4, 7</td></tr>
+                <tr><td><code>/steve-license</code></td><td>License compliance check only</td><td>5</td></tr>
+                <tr><td><code>/steve-diagram</code></td><td>Generate architecture diagrams only</td><td>1, 2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>CLI Commands</h3>
+          <p>Use from the command line (requires the orchestrator running):</p>
+          <div class="config-table">
+            <table>
+              <thead><tr><th>Command</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>steve audit ./project</code></td><td>Full 9-phase audit</td></tr>
+                <tr><td><code>steve scan ./project</code></td><td>Quick scan (phases 0-1-4)</td></tr>
+                <tr><td><code>steve license ./project</code></td><td>License compliance only</td></tr>
+                <tr><td><code>steve diagram ./project</code></td><td>Architecture diagrams</td></tr>
+                <tr><td><code>steve dashboard</code></td><td>Launch web dashboard</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Direct Agent Invocation</h3>
+          <p>You can also talk to Steve directly in Copilot Chat:</p>
+          <div class="code-block" style="margin-bottom:12px;">
+            <code>@steve Check for SQL injection in src/api/users.ts</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block" style="margin-bottom:12px;">
+            <code>@steve Generate an architecture diagram for this project</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <div class="code-block">
+            <code>@steve What licenses do my dependencies use?</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Practices -->
+  <section id="best-practices" class="section">
+    <div class="container">
+      <h2>Best Practices</h2>
+      <p style="text-align:center;color:var(--text-muted);margin:-32px auto 40px;max-width:600px;">Follow these tips to get the most comprehensive and accurate results from Steve.</p>
+      <div class="grid">
+        <div class="card">
+          <span class="card-icon">&#128220;</span>
+          <h3>Have a Good README</h3>
+          <p>Steve reads your README first to understand the business context. A clear description of what your app does, who uses it, and what data it handles makes Phase 0 dramatically better.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128193;</span>
+          <h3>Include Documentation</h3>
+          <p>API docs, architecture docs, deployment guides — Steve reads all of these. More context = better analysis. Even a simple <code>docs/</code> folder helps.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128230;</span>
+          <h3>Commit Lockfiles</h3>
+          <p>Steve scans <code>package-lock.json</code>, <code>Pipfile.lock</code>, <code>Cargo.lock</code> etc. for license compliance and supply chain analysis. Without them, dependency analysis is limited.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128172;</span>
+          <h3>Answer Clarifying Questions</h3>
+          <p>In Phase 0, Steve may ask about your industry, compliance needs, or data sensitivity. Accurate answers improve risk scoring and compliance mapping.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128736;</span>
+          <h3>Use /steve-audit for Full Results</h3>
+          <p><code>/steve-scan</code> is fast but skips architecture diagrams, license compliance, and AI analysis. For the complete picture, use <code>/steve-audit</code>.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128260;</span>
+          <h3>Audit Regularly</h3>
+          <p>Dependencies change, new code is written, and new vulnerabilities are discovered. Run Steve after major features and before releases.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128202;</span>
+          <h3>Review Architecture Diagrams</h3>
+          <p>Steve generates Mermaid diagrams auto. Review them — they're excellent for team discussions, onboarding, and catching design issues humans miss.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128176;</span>
+          <h3>Fix Critical/High First</h3>
+          <p>Steve prioritizes findings by risk score. Start with Critical (9-10) and High (7-8.9). These are the vulnerabilities most likely to be exploited.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">&#128205;</span>
+          <h3>Share the Executive Summary</h3>
+          <p>Phase 8 produces a non-technical executive summary. Perfect for leadership, compliance teams, and stakeholders who need the big picture.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools Reference -->
+  <section id="tools" class="section section-alt">
+    <div class="container">
+      <h2>MCP Tools Reference <span class="badge">19 TOOLS</span></h2>
+      <p style="text-align:center;color:var(--text-muted);margin:-32px auto 40px;max-width:600px;">
+        Steve calls these tools automatically during audits. You don't invoke them directly — they're listed here for transparency.
+      </p>
+      <div class="config-table" style="max-width:800px;margin:0 auto;">
+        <table>
+          <thead><tr><th>Tool</th><th>Phase</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>infer-business-context</code></td><td>0</td><td>Infer industry, data sensitivity, compliance from project artifacts</td></tr>
+            <tr><td><code>get-clarifying-questions</code></td><td>0</td><td>Generate targeted questions for low-confidence areas</td></tr>
+            <tr><td><code>get-methodology</code></td><td>1–7</td><td>Get detailed methodology for each audit phase</td></tr>
+            <tr><td><code>generate-architecture-diagram</code></td><td>2</td><td>Generate Mermaid diagrams (6 types)</td></tr>
+            <tr><td><code>analyze-architecture</code></td><td>2</td><td>Multi-level architecture analysis with recommendations</td></tr>
+            <tr><td><code>list-threat-models</code></td><td>3</td><td>List STRIDE, data-flow, threat scenario templates</td></tr>
+            <tr><td><code>get-threat-model</code></td><td>3</td><td>Get specific threat model template</td></tr>
+            <tr><td><code>list-checklists</code></td><td>4</td><td>List all 12 security audit layers</td></tr>
+            <tr><td><code>get-checklist</code></td><td>4</td><td>Get full checklist for a specific layer</td></tr>
+            <tr><td><code>list-attack-patterns</code></td><td>4</td><td>List attack patterns by category</td></tr>
+            <tr><td><code>get-attack-pattern</code></td><td>4</td><td>Get details for specific attack pattern</td></tr>
+            <tr><td><code>match-vulnerabilities</code></td><td>4</td><td>Match code against known vulnerability patterns</td></tr>
+            <tr><td><code>analyze-licenses</code></td><td>5</td><td>Scan dependency manifests, classify licenses</td></tr>
+            <tr><td><code>get-license-policy</code></td><td>5</td><td>Get license policy for project type</td></tr>
+            <tr><td><code>analyze-ai-opportunities</code></td><td>6</td><td>Identify AI/ML improvement opportunities</td></tr>
+            <tr><td><code>calculate-risk-score</code></td><td>7</td><td>Score findings (0–10 scale)</td></tr>
+            <tr><td><code>get-remediation</code></td><td>7</td><td>Get fix guidance with code examples</td></tr>
+            <tr><td><code>get-report-template</code></td><td>8</td><td>Get audit, executive, or vulnerability templates</td></tr>
+            <tr><td><code>map-compliance</code></td><td>8</td><td>Map findings to OWASP, NIST, CIS, SOC 2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audit Output -->
+  <section class="section">
+    <div class="container">
+      <h2>Audit Output</h2>
+      <div class="setup-guide">
+        <div class="setup-section">
+          <p>After a full audit, Steve writes results to <code>audit-results/</code> in your project:</p>
+          <pre class="diagram" style="max-width:520px;font-size:0.85rem;">audit-results/
+├── 00-business-context.md
+├── 01-system-discovery.md
+├── 02-architecture-diagrams.md     ← Mermaid diagrams
+├── 03-threat-model.md
+├── 04-security-audit.md            ← Findings by layer
+├── 05-license-compliance.md
+├── 06-ai-opportunities.md
+├── 07-risk-remediation.md          ← Ranked fix plan
+├── 08-executive-summary.md         ← For leadership
+└── findings/
+    ├── V-001.md                    ← Individual CVE-style reports
+    └── ...</pre>
+        </div>
+
+        <div class="setup-section">
+          <h3>Risk Scoring</h3>
+          <p>Every finding gets a 0–10 score:</p>
+          <p style="font-family:var(--font-mono);color:var(--accent);margin:8px 0 16px;">Risk = min(10, Impact × Exploitability × Exposure + Business Context)</p>
+          <div class="config-table" style="max-width:600px;">
+            <table>
+              <thead><tr><th>Score</th><th>Level</th><th>Remediation SLA</th></tr></thead>
+              <tbody>
+                <tr><td><strong>9.0 – 10.0</strong></td><td>Critical</td><td>Fix within 24–48 hours</td></tr>
+                <tr><td><strong>7.0 – 8.9</strong></td><td>High</td><td>Fix within 1–2 weeks</td></tr>
+                <tr><td><strong>4.0 – 6.9</strong></td><td>Medium</td><td>Fix within 1–3 months</td></tr>
+                <tr><td><strong>2.0 – 3.9</strong></td><td>Low</td><td>Next development cycle</td></tr>
+                <tr><td><strong>0 – 1.9</strong></td><td>Informational</td><td>Address opportunistically</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Troubleshooting</h2>
+      <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        <div class="card">
+          <h3>MCP server not responding</h3>
+          <p>Check the MCP indicator in VS Code's status bar. Verify your API key. For local: <code>curl http://localhost:3000/health</code></p>
+        </div>
+        <div class="card">
+          <h3>No tools available</h3>
+          <p>Restart VS Code to re-initialize the MCP connection. Check <code>.vscode/mcp.json</code> syntax. Ensure the server URL is reachable.</p>
+        </div>
+        <div class="card">
+          <h3>Steve agent doesn't appear</h3>
+          <p>Agent file must be at <code>.github/agents/steve.agent.md</code>. Restart VS Code after adding it. Verify YAML frontmatter is valid.</p>
+        </div>
+        <div class="card">
+          <h3>Audit produces few findings</h3>
+          <p>Small projects may have fewer findings. Ensure MCP is connected (list checklists). Add a README to improve business context detection.</p>
+        </div>
+        <div class="card">
+          <h3>License scan shows "unknown"</h3>
+          <p>Ensure lockfiles are committed (<code>package-lock.json</code>, <code>Pipfile.lock</code>, etc). Steve needs resolved dependency versions for accurate license classification.</p>
+        </div>
+        <div class="card">
+          <h3>Rate limited (429)</h3>
+          <p>Free tier: 100 calls/day. Upgrade to Pro for unlimited, or run Steve locally via stdio or Docker for no limits.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>&#128373; Steve Security Agent</strong>
+        <p>End-to-end autonomous security auditing.</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <h4>Product</h4>
+          <a href="/#features">Features</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/#how-it-works">How It Works</a>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <a href="docs.html">Documentation</a>
+          <a href="#best-practices">Best Practices</a>
+          <a href="https://github.com/Arihant1208/security-audit-monorepo">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Steve Security Agent. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In — Steve Security Agent</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-brand"><span class="logo">&#128373;</span> Steve</a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="docs.html">Docs</a>
+        <a href="signup.html" class="btn btn-sm">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero-mini">
+    <div class="container">
+      <h1>Welcome Back</h1>
+      <p>Log in to access your dashboard and API keys.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="form-container">
+      <div class="form-card">
+        <h2>Log In</h2>
+        <p class="form-sub">Access your Steve dashboard.</p>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Your password" required autocomplete="current-password">
+          </div>
+          <div class="form-error" id="login-error"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Log In</button>
+          </div>
+        </form>
+
+        <p class="form-footer">Don't have an account? <a href="signup.html">Sign up for free</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Steve Security Agent. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Steve Security Agent</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-brand"><span class="logo">&#128373;</span> Steve</a>
+      <div class="nav-links">
+        <a href="docs.html">Docs</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="#" class="btn btn-sm btn-ghost" id="logout-btn">Log Out</a>
+      </div>
+    </div>
+  </nav>
+
+  <section style="padding-top: 80px;">
+    <div class="container">
+
+      <!-- Auth gate -->
+      <div id="auth-gate" class="hidden" style="text-align:center;padding:100px 0;">
+        <h2>Please log in to view your dashboard</h2>
+        <p style="color:var(--text-muted);margin:12px 0 24px;">You need an account to access reports and API keys.</p>
+        <a href="login.html" class="btn">Log In</a>
+        <a href="signup.html" class="btn btn-outline" style="margin-left:12px;">Sign Up</a>
+      </div>
+
+      <!-- Dashboard content -->
+      <div id="dash-content" class="hidden">
+
+        <div class="dash-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p style="color:var(--text-muted);font-size:0.9rem;" id="user-greeting"></p>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <a href="docs.html" class="btn btn-outline btn-sm">Run New Audit</a>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="reports">Reports</button>
+          <button class="tab-btn" data-tab="keys">API Keys</button>
+          <button class="tab-btn" data-tab="usage">Usage</button>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-pane active" id="tab-reports">
+          <div class="dash-scores" id="score-cards">
+            <div class="score-card critical">
+              <div class="score-val" id="sc-critical">0</div>
+              <div class="score-label">Critical</div>
+            </div>
+            <div class="score-card high">
+              <div class="score-val" id="sc-high">0</div>
+              <div class="score-label">High</div>
+            </div>
+            <div class="score-card medium">
+              <div class="score-val" id="sc-medium">0</div>
+              <div class="score-label">Medium</div>
+            </div>
+            <div class="score-card low">
+              <div class="score-val" id="sc-low">0</div>
+              <div class="score-label">Low</div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="dash-panel">
+              <h3>Pipeline Status</h3>
+              <ul class="pipeline-list" id="pipeline-status">
+                <!-- Populated by JS -->
+              </ul>
+              <div class="empty-state" id="pipeline-empty">
+                Run <code>/steve-audit</code> in VS Code to see pipeline status here.
+              </div>
+            </div>
+            <div class="dash-panel">
+              <h3>Top Findings</h3>
+              <ul class="findings-list" id="top-findings">
+                <!-- Populated by JS -->
+              </ul>
+              <div class="empty-state" id="findings-empty">
+                Findings from your latest audit will appear here.
+              </div>
+            </div>
+          </div>
+
+          <h3 style="margin-bottom:16px;">Audit History</h3>
+          <ul class="report-list" id="report-list">
+            <!-- Populated by JS -->
+          </ul>
+          <div class="empty-state" id="reports-empty" style="padding:48px;text-align:center;color:var(--text-dim);">
+            <p style="font-size:1.1rem;margin-bottom:8px;">No audits yet</p>
+            <p>Run your first audit with <code style="background:var(--surface-2);padding:2px 8px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">/steve-audit</code> in VS Code or <code style="background:var(--surface-2);padding:2px 8px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">steve audit ./project</code> from CLI.</p>
+          </div>
+        </div>
+
+        <!-- API Keys Tab -->
+        <div class="tab-pane" id="tab-keys">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h3>Your API Keys</h3>
+            <button class="btn btn-sm" id="create-key-btn">Create New Key</button>
+          </div>
+
+          <!-- New key form (hidden) -->
+          <div class="form-card hidden" id="new-key-form" style="margin-bottom:24px;max-width:100%;">
+            <form id="create-key-form">
+              <div class="form-group">
+                <label for="key-name">Key Name</label>
+                <input type="text" id="key-name" placeholder="e.g., Production, CI/CD, Local Dev" value="API Key">
+              </div>
+              <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn btn-sm">Create</button>
+                <button type="button" class="btn btn-sm btn-ghost" id="cancel-key-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- New key reveal (hidden) -->
+          <div class="hidden" id="key-reveal-box">
+            <div class="alert alert-success">New API key created! Copy it now — you won't see it again.</div>
+            <div class="key-reveal" id="revealed-key"></div>
+            <div style="display:flex;gap:12px;margin-top:12px;">
+              <button class="btn btn-sm" id="copy-new-key">Copy Key</button>
+              <button class="btn btn-sm btn-ghost" id="dismiss-key-reveal">Done</button>
+            </div>
+          </div>
+
+          <ul class="key-list" id="key-list">
+            <!-- Populated by JS -->
+          </ul>
+        </div>
+
+        <!-- Usage Tab -->
+        <div class="tab-pane" id="tab-usage">
+          <div class="dash-scores" style="margin-bottom:24px;">
+            <div class="score-card" style="border-top-color:var(--primary);">
+              <div class="score-val" id="usage-total" style="color:var(--primary);">0</div>
+              <div class="score-label">Total API Calls</div>
+            </div>
+            <div class="score-card" style="border-top-color:var(--accent);">
+              <div class="score-val" id="usage-days" style="color:var(--accent);">0</div>
+              <div class="score-label">Active Days</div>
+            </div>
+          </div>
+
+          <div class="dash-panel">
+            <h3>Calls by Tool (Last 30 Days)</h3>
+            <div class="config-table" id="usage-table">
+              <table>
+                <thead><tr><th>Tool</th><th>Calls</th><th>Avg Latency</th></tr></thead>
+                <tbody id="usage-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="usage-empty">
+              Usage data will appear once you start making API calls.
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dash-content -->
+    </div>
+  </section>
+
+  <footer class="footer" style="margin-top:80px;">
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Steve Security Agent. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
