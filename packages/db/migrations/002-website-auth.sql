@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions (token_hash) WHERE expires_at > now();
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions (token_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 
 -- Audit reports (stored results from Steve audits)

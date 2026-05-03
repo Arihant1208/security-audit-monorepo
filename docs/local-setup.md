@@ -51,13 +51,14 @@ curl http://localhost:3000/health
 
 | Service | Port | URL | Purpose |
 |---------|------|-----|---------|
-| PostgreSQL 16 | 5432 | `postgresql://steve:steve_local@localhost:5432/steve` | Database |
+| PostgreSQL 16 | 5433 | `postgresql://steve:steve_local@localhost:5433/steve` | Database |
 | Orchestrator | 3000 | http://localhost:3000 | MCP server + Website + API |
 | AI Engine | 8100 | http://localhost:8100 | Python analysis service |
 | Dashboard | 4000 | http://localhost:4000 | Next.js dashboard |
 
 ### Default Credentials
 
+- **DB port:** `5433` (mapped from container 5432 to avoid conflicts with local Postgres)
 - **DB user:** `steve` / `steve_local`
 - **Test API key:** `steve_test_localdev1234567890abcdef`
 - **Website:** Sign up via http://localhost:3000/signup
@@ -95,16 +96,16 @@ If you want the full website experience (signup, API keys, reports):
 docker compose -f infra/docker-compose.yml up db -d
 
 # Apply migrations
-psql "postgresql://steve:steve_local@localhost:5432/steve" \
+psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/migrations/001-init.sql
-psql "postgresql://steve:steve_local@localhost:5432/steve" \
+psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/migrations/002-website-auth.sql
-psql "postgresql://steve:steve_local@localhost:5432/steve" \
+psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/seed.sql
 
 # Start orchestrator with DB
 cd packages/orchestrator
-DATABASE_URL="postgresql://steve:steve_local@localhost:5432/steve" \
+DATABASE_URL="postgresql://steve:steve_local@localhost:5433/steve" \
 SECURITY_AUDIT_API_KEYS="steve_test_localdev1234567890abcdef" \
 node dist/index.js
 ```

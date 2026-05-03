@@ -14,16 +14,18 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@steve/core": "*",
     "@clerk/backend": "^1.20.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@neondatabase/serverless": "^0.10.0",
+    "@steve/core": "*",
     "express": "^4.21.0",
+    "pg": "^8.20.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.6",
     "typescript": "^5.7.0"
   },
   "engines": {

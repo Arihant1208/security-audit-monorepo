@@ -54,7 +54,7 @@
       "isBackground": true,
       "options": {
         "env": {
-          "DATABASE_URL": "postgresql://steve:steve_local@localhost:5432/steve",
+          "DATABASE_URL": "postgresql://steve:steve_local@localhost:5433/steve",
           "SECURITY_AUDIT_API_KEYS": "steve_test_localdev1234567890abcdef"
         }
       },

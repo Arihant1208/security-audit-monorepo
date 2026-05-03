@@ -9,11 +9,12 @@ services:
       POSTGRES_PASSWORD: steve_local
       POSTGRES_DB: steve
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../packages/db/migrations/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql
-      - ../packages/db/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql
+      - ../packages/db/migrations/002-website-auth.sql:/docker-entrypoint-initdb.d/002-website-auth.sql
+      - ../packages/db/seed.sql:/docker-entrypoint-initdb.d/003-seed.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U steve"]
       interval: 5s

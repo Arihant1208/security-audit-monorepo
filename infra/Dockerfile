@@ -28,6 +28,7 @@ COPY --from=builder /app/packages/core/package.json node_modules/@steve/core/
 COPY --from=builder /app/node_modules node_modules/
 COPY --from=builder /app/packages/orchestrator/package.json ./
 COPY data/ data/
+COPY packages/site/ site/
 
 USER appuser
 EXPOSE 3000

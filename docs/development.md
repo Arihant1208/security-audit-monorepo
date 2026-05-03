@@ -43,7 +43,7 @@ curl http://localhost:3000/health
 
 | Service | Port | URL |
 |---------|------|-----|
-| PostgreSQL | 5432 | `postgresql://steve:steve_local@localhost:5432/steve` |
+| PostgreSQL | 5433 | `postgresql://steve:steve_local@localhost:5433/steve` |
 | Orchestrator | 3000 | http://localhost:3000 |
 | AI Engine | 8100 | http://localhost:8100 |
 | Dashboard | 4000 | http://localhost:4000 |
@@ -101,7 +101,7 @@ SECURITY_AUDIT_SKIP_AUTH=true node dist/index.js
 SECURITY_AUDIT_API_KEYS="my-dev-key" node dist/index.js
 
 # With database auth
-DATABASE_URL="postgresql://steve:steve_local@localhost:5432/steve" node dist/index.js
+DATABASE_URL="postgresql://steve:steve_local@localhost:5433/steve" node dist/index.js
 
 # Custom port
 node dist/index.js --port 8080
@@ -134,9 +134,9 @@ uvicorn steve.main:app --host 0.0.0.0 --port 8100 --reload
 docker compose -f infra/docker-compose.yml up db -d
 
 # Apply migrations manually
-psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/migrations/001-init.sql
-psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/migrations/002-website-auth.sql
-psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/seed.sql
+psql "postgresql://steve:steve_local@localhost:5433/steve" -f packages/db/migrations/001-init.sql
+psql "postgresql://steve:steve_local@localhost:5433/steve" -f packages/db/migrations/002-website-auth.sql
+psql "postgresql://steve:steve_local@localhost:5433/steve" -f packages/db/seed.sql
 
 # Reset database
 docker compose -f infra/docker-compose.yml down -v

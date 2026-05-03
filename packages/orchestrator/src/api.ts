@@ -6,15 +6,9 @@
 
 import { Router, type Request, type Response } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { neon } from "@neondatabase/serverless";
+import { getSQL } from "./sql-client.js";
 
 const router = Router();
-
-function getSQL() {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
-  return neon(url);
-}
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

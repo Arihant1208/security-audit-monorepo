@@ -1,11 +1,4 @@
-import { neon } from "@neondatabase/serverless";
-
-const DATABASE_URL = process.env.DATABASE_URL;
-
-function getClient() {
-  if (!DATABASE_URL) return null;
-  return neon(DATABASE_URL);
-}
+import { getSQL } from "./sql-client.js";
 
 export interface ApiKeyRow {
   id: string;
@@ -17,7 +10,7 @@ export interface ApiKeyRow {
 }
 
 export async function findApiKey(keyHash: string): Promise<ApiKeyRow | null> {
-  const sql = getClient();
+  const sql = getSQL();
   if (!sql) return null;
 
   const rows = await sql`
@@ -27,11 +20,11 @@ export async function findApiKey(keyHash: string): Promise<ApiKeyRow | null> {
       AND revoked_at IS NULL
     LIMIT 1
   `;
-  return (rows[0] as ApiKeyRow) ?? null;
+  return (rows[0] as unknown as ApiKeyRow) ?? null;
 }
 
 export async function touchApiKey(apiKeyId: string): Promise<void> {
-  const sql = getClient();
+  const sql = getSQL();
   if (!sql) return;
 
   await sql`
@@ -44,7 +37,7 @@ export async function logUsage(
   toolName: string,
   latencyMs: number
 ): Promise<void> {
-  const sql = getClient();
+  const sql = getSQL();
   if (!sql) return;
 
   await sql`
@@ -54,5 +47,5 @@ export async function logUsage(
 }
 
 export function hasDatabase(): boolean {
-  return !!DATABASE_URL;
+  return !!process.env.DATABASE_URL;
 }
