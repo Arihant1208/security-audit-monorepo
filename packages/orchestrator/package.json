@@ -1,0 +1,32 @@
+{
+  "name": "@steve/orchestrator",
+  "version": "2.0.0",
+  "description": "Steve — MCP server + pipeline orchestration engine",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "steve-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:stdio": "node dist/index.js --stdio",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@steve/core": "*",
+    "@clerk/backend": "^1.20.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@neondatabase/serverless": "^0.10.0",
+    "express": "^4.21.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

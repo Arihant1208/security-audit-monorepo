@@ -1,0 +1,16 @@
+# Steve AI Engine — Python FastAPI service
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY packages/ai-engine/pyproject.toml ./
+RUN pip install --no-cache-dir .
+
+COPY packages/ai-engine/steve/ steve/
+
+RUN adduser --system --group appuser
+USER appuser
+
+EXPOSE 8100
+
+CMD ["uvicorn", "steve.main:app", "--host", "0.0.0.0", "--port", "8100"]

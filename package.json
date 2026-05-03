@@ -1,19 +1,26 @@
 {
-  "name": "security-audit",
-  "version": "1.1.0",
+  "name": "steve-security-agent",
+  "version": "2.0.0",
   "private": true,
-  "description": "Security Audit Framework — monorepo",
+  "description": "Steve — End-to-End Autonomous Security Agent",
   "workspaces": [
-    "packages/mcp-server"
+    "packages/core",
+    "packages/orchestrator",
+    "packages/cli"
   ],
   "scripts": {
-    "build": "npm run build -w packages/mcp-server",
-    "start": "npm run start -w packages/mcp-server",
-    "start:stdio": "npm run start:stdio -w packages/mcp-server",
-    "dev": "npm run dev -w packages/mcp-server",
+    "build": "npm run build -w packages/core && npm run build -w packages/orchestrator && npm run build -w packages/cli",
+    "build:core": "npm run build -w packages/core",
+    "build:orchestrator": "npm run build -w packages/orchestrator",
+    "build:cli": "npm run build -w packages/cli",
+    "start": "npm run start -w packages/orchestrator",
+    "start:stdio": "npm run start:stdio -w packages/orchestrator",
+    "dev": "npm run dev -w packages/orchestrator",
+    "steve": "npm run start -w packages/cli --",
     "db:migrate": "psql $DATABASE_URL -f packages/db/migrations/001-init.sql",
     "db:seed": "psql $DATABASE_URL -f packages/db/seed.sql",
     "docker:up": "docker compose -f infra/docker-compose.yml up -d",
-    "docker:down": "docker compose -f infra/docker-compose.yml down"
+    "docker:down": "docker compose -f infra/docker-compose.yml down",
+    "ai-engine": "cd packages/ai-engine && python -m uvicorn steve.main:app --reload --port 8100"
   }
 }

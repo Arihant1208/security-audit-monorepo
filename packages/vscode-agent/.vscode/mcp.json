@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "steve-security-agent": {
+      "type": "http",
+      "url": "${input:steve-server-url}",
+      "headers": {
+        "X-API-Key": "${input:steve-api-key}"
+      }
+    }
+  },
+  "inputs": {
+    "steve-server-url": {
+      "type": "promptString",
+      "description": "Steve server URL (e.g. http://localhost:3000/mcp or https://api.steve-security.dev/mcp)"
+    },
+    "steve-api-key": {
+      "type": "promptString",
+      "description": "Your Steve API key",
+      "password": true
+    }
+  }
+}

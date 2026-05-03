@@ -1,0 +1,26 @@
+{
+  "name": "@steve/cli",
+  "version": "2.0.0",
+  "description": "Steve CLI — run security audits from the command line",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "steve": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@steve/core": "*",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

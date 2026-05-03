@@ -1,13 +1,13 @@
-# Local development stack
+# Steve — Local development stack
 # Run from repo root: docker compose -f infra/docker-compose.yml up -d
 
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: secaudit
-      POSTGRES_PASSWORD: secaudit_local
-      POSTGRES_DB: secaudit
+      POSTGRES_USER: steve
+      POSTGRES_PASSWORD: steve_local
+      POSTGRES_DB: steve
     ports:
       - "5432:5432"
     volumes:
@@ -15,24 +15,48 @@ services:
       - ../packages/db/migrations/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql
       - ../packages/db/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U secaudit"]
+      test: ["CMD-SHELL", "pg_isready -U steve"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  mcp-server:
+  orchestrator:
     build:
       context: ..
       dockerfile: infra/Dockerfile
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://secaudit:secaudit_local@db:5432/secaudit
-      SECURITY_AUDIT_API_KEYS: sa_test_localdev1234567890abcdef
+      DATABASE_URL: postgresql://steve:steve_local@db:5432/steve
+      SECURITY_AUDIT_API_KEYS: steve_test_localdev1234567890abcdef
+      SECURITY_AUDIT_SKIP_AUTH: "false"
+      AI_ENGINE_URL: http://ai-engine:8100
       PORT: "3000"
     depends_on:
       db:
         condition: service_healthy
+      ai-engine:
+        condition: service_started
+
+  ai-engine:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.ai-engine
+    ports:
+      - "8100:8100"
+    environment:
+      PORT: "8100"
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dashboard
+    ports:
+      - "4000:4000"
+    environment:
+      STEVE_API_URL: http://orchestrator:3000
+    depends_on:
+      - orchestrator
 
 volumes:
   pgdata:

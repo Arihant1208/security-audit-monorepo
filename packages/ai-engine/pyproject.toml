@@ -1,0 +1,23 @@
+[project]
+name = "steve-ai-engine"
+version = "2.0.0"
+description = "Steve AI Engine — Python service for code analysis, LLM integration, and diagram generation"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "pydantic>=2.10.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120

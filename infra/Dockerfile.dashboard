@@ -1,0 +1,22 @@
+# Steve Dashboard — Next.js web app
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY packages/dashboard/package.json packages/dashboard/package-lock.json* ./
+RUN npm ci
+
+COPY packages/dashboard/ ./
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+USER appuser
+EXPOSE 4000
+ENV PORT=4000
+
+CMD ["node", "server.js"]
