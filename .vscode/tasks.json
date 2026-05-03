@@ -1,0 +1,117 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build All",
+      "type": "shell",
+      "command": "npm run build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "revealProblems": "onProblem" }
+    },
+    {
+      "label": "Build Core",
+      "type": "shell",
+      "command": "npm run build:core",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "revealProblems": "onProblem" }
+    },
+    {
+      "label": "Build Orchestrator",
+      "type": "shell",
+      "command": "npm run build:orchestrator",
+      "dependsOn": ["Build Core"],
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "revealProblems": "onProblem" }
+    },
+    {
+      "label": "Build CLI",
+      "type": "shell",
+      "command": "npm run build:cli",
+      "dependsOn": ["Build Core"],
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "revealProblems": "onProblem" }
+    },
+    {
+      "label": "Start Orchestrator (No Auth)",
+      "type": "shell",
+      "command": "npm start",
+      "isBackground": true,
+      "options": {
+        "env": { "SECURITY_AUDIT_SKIP_AUTH": "true" }
+      },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" },
+      "dependsOn": ["Build All"]
+    },
+    {
+      "label": "Start Orchestrator (With DB)",
+      "type": "shell",
+      "command": "npm start",
+      "isBackground": true,
+      "options": {
+        "env": {
+          "DATABASE_URL": "postgresql://steve:steve_local@localhost:5432/steve",
+          "SECURITY_AUDIT_API_KEYS": "steve_test_localdev1234567890abcdef"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" },
+      "dependsOn": ["Build All"]
+    },
+    {
+      "label": "Start AI Engine",
+      "type": "shell",
+      "command": "npm run ai-engine",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" }
+    },
+    {
+      "label": "Docker: Start All Services",
+      "type": "shell",
+      "command": "docker compose -f infra/docker-compose.yml up -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Stop All Services",
+      "type": "shell",
+      "command": "docker compose -f infra/docker-compose.yml down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Start DB Only",
+      "type": "shell",
+      "command": "docker compose -f infra/docker-compose.yml up db -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Reset DB (destroy + recreate)",
+      "type": "shell",
+      "command": "docker compose -f infra/docker-compose.yml down -v && docker compose -f infra/docker-compose.yml up db -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Orchestrator + AI Engine (No Docker)",
+      "dependsOn": ["Start Orchestrator (No Auth)", "Start AI Engine"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "Dev: Full Stack (DB + Orchestrator + AI Engine)",
+      "dependsOn": ["Docker: Start DB Only", "Start Orchestrator (With DB)", "Start AI Engine"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Health Check",
+      "type": "shell",
+      "command": "Invoke-RestMethod http://localhost:3000/health | ConvertTo-Json",
+      "problemMatcher": []
+    }
+  ]
+}
