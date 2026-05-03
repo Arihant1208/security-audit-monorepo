@@ -1,10 +1,14 @@
-# Development Setup
+# Development Guide
 
 ## Prerequisites
 
-- **Node.js** 20+
-- **Docker** and **Docker Compose** (for local Postgres)
-- **Git**
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Node.js | 20+ | Orchestrator, core, CLI |
+| npm | 10+ | Workspace management |
+| Python | 3.11+ | AI engine |
+| Docker | 24+ | Local Postgres, full-stack dev |
+| Git | 2.40+ | Version control |
 
 ## Quick Start
 
@@ -13,109 +17,187 @@
 git clone https://github.com/Arihant1208/security-audit-monorepo.git
 cd security-audit-monorepo
 
-# Install dependencies (npm workspaces)
+# Install all workspace dependencies
 npm install
 
-# Start local Postgres + MCP server
+# Build everything (core → orchestrator → cli)
+npm run build
+
+# Start the orchestrator (no DB required — uses env var auth)
+cd packages/orchestrator
+SECURITY_AUDIT_SKIP_AUTH=true node dist/index.js
+# → http://localhost:3000
+```
+
+## Full-Stack with Docker Compose
+
+Starts all 4 services: PostgreSQL, Orchestrator, AI Engine, Dashboard.
+
+```bash
 docker compose -f infra/docker-compose.yml up -d
 
 # Verify
 curl http://localhost:3000/health
+# {"status":"ok","agent":"steve-security-agent","version":"2.0.0","tools":19,"phases":9}
 ```
 
-The docker-compose setup:
-- Starts PostgreSQL 16 with the schema auto-applied and seed data loaded
-- Builds and starts the MCP server connected to the local DB
-- Test API key: `sa_test_localdev1234567890abcdef`
+| Service | Port | URL |
+|---------|------|-----|
+| PostgreSQL | 5432 | `postgresql://steve:steve_local@localhost:5432/steve` |
+| Orchestrator | 3000 | http://localhost:3000 |
+| AI Engine | 8100 | http://localhost:8100 |
+| Dashboard | 4000 | http://localhost:4000 |
 
-## Development Without Docker
-
-If you prefer running the server directly:
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build the MCP server
-npm run build
-
-# 3. Run with auth skipped (no DB needed)
-cd packages/mcp-server
-SECURITY_AUDIT_SKIP_AUTH=true node dist/index.js
-
-# Or use env var auth
-SECURITY_AUDIT_API_KEYS="my-dev-key" node dist/index.js
-```
+Test API key: `steve_test_localdev1234567890abcdef`
 
 ## Directory Layout
 
 ```
-security-audit/
-├── data/                    ← Markdown knowledge (single source of truth)
+steve/
+├── data/                        ← Security knowledge base (81+ markdown files)
 ├── packages/
-│   ├── mcp-server/          ← TypeScript MCP server
-│   ├── client/              ← Distributable agent/prompt files
-│   ├── site/                ← Landing page (HTML/CSS)
-│   └── db/                  ← SQL schema + migrations
-├── infra/                   ← Docker, Fly.io, Render configs
-├── docs/                    ← You are here
-└── scripts/                 ← Automation helpers
+│   ├── core/                    ← Shared TypeScript types (npm workspace: @steve/core)
+│   ├── orchestrator/            ← MCP server + API + pipeline engine + static site
+│   ├── ai-engine/               ← Python FastAPI (code analysis, diagrams, licenses)
+│   ├── cli/                     ← CLI tool (steve audit/scan/license/diagram)
+│   ├── dashboard/               ← Next.js web dashboard (scaffold)
+│   ├── vscode-agent/            ← Distributable VS Code agent + prompts
+│   ├── site/                    ← HTML/CSS/JS website (served by orchestrator)
+│   ├── db/                      ← PostgreSQL schema + migrations
+│   ├── mcp-server/ (legacy)     ← Original MCP server
+│   └── client/ (legacy)         ← Original 3-agent client
+├── infra/                       ← Docker, docker-compose, Fly.io, Render configs
+├── docs/                        ← This documentation
+└── scripts/                     ← Setup, build, distribution helpers
 ```
 
-## Common Tasks
+## Build System
 
-### Rebuild after code changes
+The monorepo uses **npm workspaces**. Build order matters — core must build before orchestrator and CLI.
 
 ```bash
+# Build everything
 npm run build
-```
 
-### Watch mode (auto-rebuild on save)
+# Build individual packages
+npm run build -w packages/core
+npm run build -w packages/orchestrator
+npm run build -w packages/cli
 
-```bash
+# Watch mode (auto-rebuild on save)
 npm run dev
 ```
 
-### Run with stdio transport (for testing in VS Code)
+## Running Individual Services
+
+### Orchestrator (TypeScript)
 
 ```bash
-npm run start:stdio
+# With no auth (simplest for development)
+cd packages/orchestrator
+SECURITY_AUDIT_SKIP_AUTH=true node dist/index.js
+
+# With env var auth
+SECURITY_AUDIT_API_KEYS="my-dev-key" node dist/index.js
+
+# With database auth
+DATABASE_URL="postgresql://steve:steve_local@localhost:5432/steve" node dist/index.js
+
+# Custom port
+node dist/index.js --port 8080
+
+# Stdio mode (for VS Code MCP)
+node dist/index.js --stdio
 ```
 
-### Reset local database
+### AI Engine (Python)
 
 ```bash
+cd packages/ai-engine
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate    # Linux/Mac
+.venv\Scripts\activate       # Windows
+
+# Install dependencies
+pip install -e .
+
+# Run
+uvicorn steve.main:app --host 0.0.0.0 --port 8100 --reload
+```
+
+### Database
+
+```bash
+# Start just Postgres (via Docker)
+docker compose -f infra/docker-compose.yml up db -d
+
+# Apply migrations manually
+psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/migrations/001-init.sql
+psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/migrations/002-website-auth.sql
+psql "postgresql://steve:steve_local@localhost:5432/steve" -f packages/db/seed.sql
+
+# Reset database
 docker compose -f infra/docker-compose.yml down -v
-docker compose -f infra/docker-compose.yml up -d
+docker compose -f infra/docker-compose.yml up db -d
 ```
 
-### Test with VS Code
-
-1. Set up `.vscode/mcp.json` in a test project (copy from `packages/client/.vscode/`)
-2. Point it to `http://localhost:3000/mcp`
-3. Use API key `sa_test_localdev1234567890abcdef`
-4. Open Copilot Chat and try `@security-scanner List the available security checklists`
-
-### Add a new data file
-
-1. Add the `.md` file to the appropriate `data/` subdirectory
-2. If it's a new category/layer, update the corresponding tool file in `packages/mcp-server/src/tools/`
-3. Rebuild: `npm run build`
-
-## Code Structure
-
-### packages/mcp-server/src/
+## Code Structure — Orchestrator
 
 | File | Purpose |
 |------|---------|
-| `index.ts` | Entry point — creates server, starts stdio or HTTP transport |
-| `auth.ts` | Auth chain: skip → DB lookup → env var fallback |
-| `data.ts` | File access helpers with path traversal protection |
-| `db.ts` | Neon PostgreSQL client — key lookup, usage logging |
-| `tools/checklists.ts` | `list-checklists`, `get-checklist` |
-| `tools/knowledge-base.ts` | `list-attack-patterns`, `get-attack-pattern`, `match-vulnerabilities` |
-| `tools/risk-scoring.ts` | `calculate-risk-score` |
-| `tools/remediation.ts` | `get-remediation` |
-| `tools/reporting.ts` | `get-report-template`, `map-compliance` |
-| `tools/methodology.ts` | `get-methodology` |
-| `tools/threat-models.ts` | `list-threat-models`, `get-threat-model` |
+| `src/index.ts` | Entry point — MCP server, HTTP/stdio transport, static site serving |
+| `src/api.ts` | Website REST API (auth, keys, reports, usage) — 11 endpoints |
+| `src/auth.ts` | Auth chain: skip → DB lookup → env var fallback |
+| `src/data.ts` | File access helpers with path traversal protection |
+| `src/db.ts` | Neon PostgreSQL client — key lookup, usage logging |
+| `src/tools/checklists.ts` | `list-checklists`, `get-checklist` |
+| `src/tools/knowledge-base.ts` | `list-attack-patterns`, `get-attack-pattern`, `match-vulnerabilities` |
+| `src/tools/risk-scoring.ts` | `calculate-risk-score` |
+| `src/tools/remediation.ts` | `get-remediation` |
+| `src/tools/reporting.ts` | `get-report-template`, `map-compliance` |
+| `src/tools/methodology.ts` | `get-methodology` |
+| `src/tools/threat-models.ts` | `list-threat-models`, `get-threat-model` |
+| `src/tools/business-discovery.ts` | `analyze-business-context` |
+| `src/tools/architecture.ts` | `generate-architecture-diagram`, `analyze-architecture` |
+| `src/tools/license-compliance.ts` | `scan-licenses`, `check-license-compatibility` |
+| `src/tools/ai-opportunities.ts` | `analyze-ai-opportunities` |
+| `src/tools/pipeline-control.ts` | `start-pipeline`, `get-pipeline-status` |
+
+## Common Tasks
+
+### Add a new MCP tool
+
+1. Create `packages/orchestrator/src/tools/my-tool.ts`
+2. Export a `registerMyTools(server: McpServer)` function
+3. Import and call it in `src/index.ts` → `createServer()`
+4. Rebuild: `npm run build -w packages/orchestrator`
+
+### Add a new data file
+
+1. Add `.md` file to appropriate `data/` subdirectory
+2. If needed, update the corresponding tool that reads that directory
+3. Rebuild: `npm run build`
+
+### Add a new API endpoint
+
+1. Add route in `packages/orchestrator/src/api.ts`
+2. Rebuild: `npm run build -w packages/orchestrator`
+
+### Test MCP in VS Code
+
+1. Set up `.vscode/mcp.json` in a test project (copy from `packages/vscode-agent/`)
+2. Point server URL to `http://localhost:3000/mcp`
+3. Use API key `steve_test_localdev1234567890abcdef` (or set `SKIP_AUTH=true`)
+4. Open Copilot Chat → `@steve List the available security checklists`
+
+## Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `3000` | HTTP server port |
+| `DATABASE_URL` | — | PostgreSQL connection string (Neon) |
+| `SECURITY_AUDIT_SKIP_AUTH` | `false` | Skip API key auth (dev only) |
+| `SECURITY_AUDIT_API_KEYS` | — | Comma-separated plaintext keys (fallback auth) |
+| `AI_ENGINE_URL` | `http://localhost:8100` | AI engine base URL |

@@ -1,10 +1,50 @@
 # API Key Management
 
-## How Keys Work
+## Overview
 
-1. **Key format:** `sa_live_` prefix + 32 random hex chars (e.g., `sa_live_a1b2c3d4e5f67890...`)
-2. **Storage:** The server stores only the **SHA-256 hash** of the key in the `api_keys` table. The plaintext key is shown once at creation time and never stored.
-3. **Display:** The `key_prefix` column stores the first 8 characters (e.g., `sa_live_`) for identification in the dashboard.
+Steve uses API keys to authenticate MCP tool calls over HTTP. Keys follow the format `sa_live_` + 32 random hex characters, are stored as SHA-256 hashes, and shown to the user only once at creation time.
+
+## Getting a Key
+
+### Via the Website (Recommended)
+
+1. Go to the Steve website and sign up
+2. Log in and navigate to the **Dashboard → API Keys** tab
+3. Click **Generate New Key**
+4. **Copy the key immediately** — it will not be shown again
+5. Use the key in your `.vscode/mcp.json` or CLI config
+
+### Via Environment Variable (Development)
+
+For quick setups without a database:
+
+```bash
+SECURITY_AUDIT_API_KEYS="my-dev-key,another-key" node dist/index.js
+```
+
+Keys are comma-separated. No hashing, no tracking, no revocation — just plaintext match. Good for local development.
+
+### Via SQL (Manual / Admin)
+
+```bash
+# Generate a key locally
+export KEY="sa_live_$(openssl rand -hex 16)"
+echo "Your key: $KEY"
+
+# Hash it
+export HASH=$(echo -n "$KEY" | sha256sum | cut -d' ' -f1)
+
+# Insert (requires DATABASE_URL)
+psql "$DATABASE_URL" -c "
+  INSERT INTO api_keys (user_id, key_hash, key_prefix, name)
+  VALUES (
+    (SELECT id FROM users LIMIT 1),
+    '$HASH',
+    'sa_live_',
+    'Manual key'
+  );
+"
+```
 
 ## Auth Priority Chain
 
@@ -19,80 +59,95 @@ When a request arrives with an `X-API-Key` header:
 4. Reject with 401
 ```
 
-## Simple Mode (No Database)
+## Website Session Auth
 
-For quick setups, use the `SECURITY_AUDIT_API_KEYS` env var:
+The website uses **session-based authentication** separate from API keys:
 
-```bash
-SECURITY_AUDIT_API_KEYS="key1,key2,key3" node dist/index.js
+```
+POST /api/auth/signup { email, password }
+  → Create user with salted SHA-256 password hash
+  → Generate session token
+  → Return token + user info
+
+POST /api/auth/login { email, password }
+  → Verify password against stored hash
+  → Generate session token (stored as SHA-256 hash in sessions table)
+  → Return token + user info
+
+GET /api/auth/me (X-Session-Token header)
+  → Look up session → return user info
+
+POST /api/auth/logout (X-Session-Token header)
+  → Delete session from table
 ```
 
-Keys are comma-separated. No hashing, no tracking, no revocation — just plaintext match.
+Sessions expire after **7 days**.
 
-## Database Mode
-
-When `DATABASE_URL` is set, the server uses PostgreSQL for key management:
-
-### Tables
+## Database Schema
 
 ```sql
 users (
-  id          UUID PRIMARY KEY,
-  clerk_id    TEXT UNIQUE,      -- from Clerk auth
-  email       TEXT,
-  plan        TEXT DEFAULT 'free',
-  created_at  TIMESTAMPTZ
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clerk_id       TEXT UNIQUE,
+  email          TEXT,
+  password_hash  TEXT,
+  plan           TEXT DEFAULT 'free',
+  created_at     TIMESTAMPTZ DEFAULT now()
 )
 
 api_keys (
-  id           UUID PRIMARY KEY,
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID → users(id),
-  key_hash     TEXT,             -- SHA-256 of plaintext key
-  key_prefix   TEXT,             -- first 8 chars for display
+  key_hash     TEXT NOT NULL,
+  key_prefix   TEXT,
   name         TEXT,
-  created_at   TIMESTAMPTZ,
-  last_used_at TIMESTAMPTZ,     -- updated on each use
-  revoked_at   TIMESTAMPTZ      -- NULL = active, set = revoked
+  created_at   TIMESTAMPTZ DEFAULT now(),
+  last_used_at TIMESTAMPTZ,
+  revoked_at   TIMESTAMPTZ       -- NULL = active, set = revoked
+)
+
+sessions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID → users(id),
+  token_hash  TEXT NOT NULL UNIQUE,
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  expires_at  TIMESTAMPTZ NOT NULL
 )
 
 usage_logs (
-  id          BIGSERIAL,
+  id          BIGSERIAL PRIMARY KEY,
   api_key_id  UUID → api_keys(id),
   tool_name   TEXT,
-  created_at  TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ DEFAULT now(),
   latency_ms  INT
 )
 ```
 
-### Creating a Key (Manual / Dev)
+## Key Management API
 
-```sql
--- 1. Create user
-INSERT INTO users (clerk_id, email) VALUES ('dev_user', 'dev@example.com');
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `POST /api/keys` | POST | Session | Create new API key (returns plaintext once) |
+| `GET /api/keys` | GET | Session | List keys (shows prefix, name, last used, created) |
+| `DELETE /api/keys/:id` | DELETE | Session | Revoke a key (sets `revoked_at`) |
 
--- 2. Generate key locally (don't store the plaintext!)
--- Key: sa_live_abc123def456...
--- Hash: echo -n "sa_live_abc123def456..." | sha256sum
+## Revoking a Key
 
--- 3. Insert hashed key
-INSERT INTO api_keys (user_id, key_hash, key_prefix, name)
-VALUES (
-  (SELECT id FROM users WHERE clerk_id = 'dev_user'),
-  '<sha256-hash-here>',
-  'sa_live_',
-  'My API Key'
-);
-```
+### Via Website
 
-### Revoking a Key
+Dashboard → API Keys → click the **Revoke** button next to the key.
+
+### Via SQL
 
 ```sql
 UPDATE api_keys SET revoked_at = now() WHERE id = '<key-uuid>';
 ```
 
-Revoked keys are immediately rejected — the index filters them: `WHERE revoked_at IS NULL`.
+Revoked keys are rejected immediately — the index filters `WHERE revoked_at IS NULL`.
 
-### Usage Analytics
+## Usage Analytics
+
+View usage data via the Dashboard → Usage tab, or query directly:
 
 ```sql
 -- Calls per tool (last 24 hours)
@@ -111,13 +166,10 @@ GROUP BY ak.key_prefix, ak.name
 ORDER BY calls DESC;
 ```
 
-## Future: Clerk Integration
+## Security Notes
 
-The `@clerk/backend` package is installed for future use. When a dashboard is built:
-
-1. Users sign in via Clerk
-2. The dashboard creates API keys (generates random key, hashes, stores hash)
-3. The plaintext key is shown once to the user
-4. JWT verification on dashboard endpoints uses Clerk's `verifyToken()`
-
-This is not wired up yet — currently keys are managed via SQL or the env var.
+- API keys are stored as **SHA-256 hashes** — the server never stores plaintext
+- Session tokens are stored as **SHA-256 hashes** with 7-day expiry
+- Passwords use **salted SHA-256** hashing (for production, upgrade to bcrypt/argon2)
+- `SKIP_AUTH` mode is for local development **only** — never enable in production
+- All auth data is transmitted over HTTPS in production (enforced by all deployment platforms)

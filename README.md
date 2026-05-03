@@ -134,11 +134,12 @@ See [docs/deployment.md](docs/deployment.md) for Render, Fly.io, Railway, and Do
 
 ## Documentation
 
-- [Usage Guide](docs/usage.md) — setup, first scan, commands
-- [Architecture](docs/architecture.md) — system design, data flow, security boundaries
-- [Deployment](docs/deployment.md) — Docker, Fly.io, Render, Railway
-- [Development](docs/development.md) — local setup, contributing
-- [API Keys](docs/api-keys.md) — key management, auth chain
+- [Local Setup](docs/local-setup.md) — zero to running in minutes (Docker, native, stdio)
+- [Usage Guide](docs/usage.md) — commands, pipeline, audit layers, compliance mappings
+- [Architecture](docs/architecture.md) — system design, 9-phase pipeline, data flow
+- [Deployment](docs/deployment.md) — free → starter → production → enterprise multi-cloud
+- [Development](docs/development.md) — contributing, build system, adding tools
+- [API Keys](docs/api-keys.md) — key management, auth chain, session auth
 
 ## Tech Stack
 

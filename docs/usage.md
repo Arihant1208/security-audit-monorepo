@@ -1,140 +1,151 @@
 # Usage Guide
 
-Complete guide to using the Security Audit Framework — from first scan to remediation.
+Complete guide to using Steve — from setup to your first autonomous security audit.
 
 ---
 
 ## Prerequisites
 
-- **VS Code** with [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) and [Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat) extensions installed
+- **VS Code** with [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) and [Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat)
 - **GitHub Copilot** subscription (Individual, Business, or Enterprise)
-- **API Key** — get one free at [security-audit.dev](https://security-audit.dev), or self-host
+- **API Key** — get one at the Steve website, or self-host with `SKIP_AUTH=true`
 
 ---
 
-## Step 1 — Install Client Files
+## Setup Options
 
-Copy the agent files into your project. These are lightweight markdown files — no dependencies, no build step.
+### Option A: Hosted (SaaS)
 
-### Option A: npx degit (quickest)
+1. Sign up at the Steve website
+2. Create an API key from the dashboard
+3. Copy the agent files into your project:
 
 ```bash
-npx degit Arihant1208/security-audit-monorepo/packages/client my-project
+npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project
 ```
 
-This copies into your project root:
+4. VS Code reads `.vscode/mcp.json` and prompts for your server URL and API key
 
-```
-my-project/
-├── .vscode/mcp.json
-├── .github/
-│   ├── agents/
-│   │   ├── security-scanner.agent.md
-│   │   ├── security-reporter.agent.md
-│   │   └── security-fixer.agent.md
-│   └── prompts/
-│       ├── scan-codebase.prompt.md
-│       ├── generate-report.prompt.md
-│       ├── fix-vulnerabilities.prompt.md
-│       └── full-audit.prompt.md
-└── .gitignore
-```
-
-### Option B: Manual copy
-
-Clone the repo and copy the client directory:
+### Option B: Self-Hosted (Docker)
 
 ```bash
 git clone https://github.com/Arihant1208/security-audit-monorepo.git
-cp -r security-audit-monorepo/packages/client/.github your-project/.github
-cp -r security-audit-monorepo/packages/client/.vscode your-project/.vscode
+cd security-audit-monorepo
+docker compose -f infra/docker-compose.yml up -d
+# Server at http://localhost:3000
+# Test key: steve_test_localdev1234567890abcdef
 ```
 
-### Option C: Copy script
+### Option C: Local stdio (No Network)
 
 ```bash
-bash scripts/copy-client.sh /path/to/your-project
+git clone https://github.com/Arihant1208/security-audit-monorepo.git
+cd security-audit-monorepo
+npm install && npm run build
+```
+
+Update `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
+    "steve": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/absolute/path/to/security-audit-monorepo/packages/orchestrator/dist/index.js", "--stdio"],
+      "env": {
+        "SECURITY_AUDIT_SKIP_AUTH": "true"
+      }
+    }
+  }
+}
 ```
 
 ---
 
-## Step 2 — Connect to the MCP Server
+## VS Code Commands
 
-Open your project in VS Code. The first time Copilot Chat loads, it reads `.vscode/mcp.json` and prompts you for:
+### Prompt Commands
 
-| Input | Value |
-|-------|-------|
-| **Server URL** | `https://api.security-audit.dev/mcp` (hosted) or `http://localhost:3000/mcp` (local) |
-| **API Key** | Your key from the dashboard |
-
-VS Code stores the API key securely — it never appears in your project files.
-
-### Verify the connection
-
-Open Copilot Chat and type:
-
-```
-@security-scanner List the available security checklists
-```
-
-If the agent responds with 12 checklist layers, you're connected.
-
----
-
-## Step 3 — Run Your First Scan
-
-### Full Audit (recommended)
-
-Type in Copilot Chat:
-
-```
-/full-audit
-```
-
-This runs all three phases automatically:
-1. **Scan** — discovers your architecture, maps attack surfaces, runs through all 12 security checklists
-2. **Report** — generates a full technical audit report and executive summary
-3. **Fix** — walks through each finding with recommended fixes (waits for your approval before editing code)
-
-### Individual Commands
-
-| Command | What it does |
+| Command | What It Does |
 |---------|-------------|
-| `/scan-codebase` | Scan only — writes findings to `audit-results/scan-results.md` |
-| `/generate-report` | Report only — requires scan results to exist first |
-| `/fix-vulnerabilities` | Fix only — walks through findings highest-risk first |
+| `/steve-audit` | Full 9-phase autonomous audit (business discovery → reports) |
+| `/steve-scan` | Quick security scan (discovery + 12-layer audit) |
+| `/steve-license` | License compliance check on all dependencies |
+| `/steve-diagram` | Generate Mermaid architecture diagrams |
 
-### Direct Agent Invocation
-
-You can also invoke agents directly for custom queries:
+### Direct Agent Queries
 
 ```
-@security-scanner Check if this project has any SQL injection vulnerabilities
-@security-reporter Generate a SOC 2 compliance report from the scan results
-@security-fixer Fix the XSS vulnerability in src/handlers/search.ts
+@steve Check this project for SQL injection vulnerabilities
+@steve What compliance frameworks apply to a healthcare SaaS?
+@steve Generate a STRIDE threat model for the authentication flow
+@steve Analyze the license risk of my npm dependencies
 ```
 
 ---
 
-## Step 4 — Review Results
+## CLI Commands
 
-After a scan, you'll find output in `audit-results/`:
+```bash
+# Full autonomous audit
+steve audit ./my-project
+
+# Quick security scan
+steve scan ./my-project
+
+# License compliance only
+steve license ./my-project
+
+# Architecture diagrams
+steve diagram ./my-project
+
+# Generate report from existing scan
+steve report ./my-project
+
+# Launch web dashboard
+steve dashboard
+```
+
+---
+
+## Understanding the Pipeline
+
+Steve runs a **9-phase pipeline** automatically:
+
+| Phase | Name | What Happens |
+|-------|------|-------------|
+| 0 | Business Discovery | Identifies industry, compliance needs, risk profile |
+| 1 | System Discovery | Scans tech stack, dependencies, entry points |
+| 2 | Architecture Mapping | Generates Mermaid diagrams, multi-level analysis |
+| 3 | Threat Modeling | STRIDE per component, attack surface mapping |
+| 4 | Layered Security Audit | 12 checklist layers with evidence-backed findings |
+| 5 | License Compliance | Per-dependency license classification + conflict detection |
+| 6 | AI Opportunity Analysis | Where AI/ML can improve security or the system |
+| 7 | Risk & Remediation | Scored findings (0–10), prioritized fix plan |
+| 8 | Report Generation | Executive summary + full technical report |
+
+---
+
+## Review Results
+
+After a scan, output goes to `audit-results/`:
 
 ```
 audit-results/
-├── scan-results.md        ← All findings with severity, evidence, risk scores
-├── audit-report.md        ← Full technical audit report
-├── executive-summary.md   ← Non-technical leadership summary
-├── remediation-log.md     ← Log of applied fixes
+├── scan-results.md          All findings with severity, evidence, risk scores
+├── audit-report.md          Full technical audit report
+├── executive-summary.md     Non-technical leadership summary
+├── architecture-diagrams/   Mermaid diagrams
+├── license-report.md        Dependency license analysis
+├── remediation-log.md       Log of applied fixes
 └── findings/
-    ├── V-001.md           ← Individual Critical/High finding reports
+    ├── V-001.md             Individual finding reports
     ├── V-002.md
     └── ...
 ```
 
-### Understanding Risk Scores
-
-Each finding gets a risk score from 0–10:
+### Risk Scores
 
 | Score | Level | SLA |
 |-------|-------|-----|
@@ -144,119 +155,78 @@ Each finding gets a risk score from 0–10:
 | 2.0–3.9 | Low | Next development cycle |
 | 0–1.9 | Informational | Address opportunistically |
 
-The score is calculated as: `Risk = min(10, Impact × Exploitability × Exposure + Business Context)`
+Formula: `Risk = min(10, Impact × Exploitability × Exposure + Business Context)`
 
 ---
 
-## Step 5 — Apply Fixes
+## Website Dashboard
 
-When using `/fix-vulnerabilities` or `/full-audit`, the fixer agent:
+The website at the server URL provides:
 
-1. Loads scan results and sorts by risk score (highest first)
-2. For each finding, fetches the remediation guide from the MCP server
-3. Shows you the **current vulnerable code**, the **recommended fix**, and **why it works**
-4. **Waits for your approval** before editing any file
-5. Logs every change to `audit-results/remediation-log.md`
-
-No code is modified without your explicit consent.
+- **Sign up / Login** — session-based authentication
+- **Dashboard** — three tabs:
+  - **Reports** — view all audit reports with status and findings count
+  - **API Keys** — create, view, and revoke keys
+  - **Usage** — tool call analytics for the last 30 days
+- **Documentation** — embedded quick start and tool reference
 
 ---
 
-## Available MCP Tools
+## 12 Security Audit Layers
 
-The agents use these 12 tools behind the scenes. You don't call them directly — the agents orchestrate them automatically.
+| # | Layer | Examples |
+|---|-------|---------|
+| 1 | Architecture | Separation of concerns, attack surface minimization |
+| 2 | Identity & Access | Authentication, authorization, session management |
+| 3 | Application Security | Input validation, output encoding, error handling |
+| 4 | API Security | Rate limiting, schema validation, auth tokens |
+| 5 | Data Security | Encryption at rest/transit, PII handling, key management |
+| 6 | Network Security | TLS, firewall rules, DNS security |
+| 7 | Infrastructure & Cloud | IAM, secrets management, container security |
+| 8 | DevOps & CI/CD | Pipeline security, artifact signing, SAST/DAST |
+| 9 | Supply Chain | Dependency audit, lock files, SCA tools |
+| 10 | Client-Side | XSS, CSP, cookie security, DOM manipulation |
+| 11 | Monitoring & Logging | Security events, alerting, audit trails |
+| 12 | Business Logic | Authorization bypass, race conditions, financial integrity |
+
+---
+
+## Compliance Mappings
+
+Steve maps findings to four compliance frameworks:
+
+| Framework | Coverage |
+|-----------|----------|
+| OWASP Top 10 | All 10 categories with subcategories |
+| NIST CSF | Identify, Protect, Detect, Respond, Recover |
+| CIS Controls | Implementation Groups 1–3 |
+| SOC 2 | Trust Service Criteria: Security, Availability, Processing Integrity, Confidentiality, Privacy |
+
+---
+
+## MCP Tools Reference
+
+Steve exposes **19 tools** via the Model Context Protocol. Agents and CLI use these automatically — you don't call them directly.
 
 | Tool | Purpose |
 |------|---------|
 | `list-checklists` | List all 12 security audit layers |
-| `get-checklist` | Get the full checklist for a specific layer |
+| `get-checklist` | Get full checklist for a specific layer |
 | `list-attack-patterns` | List attack patterns by category |
-| `get-attack-pattern` | Get details for a specific attack pattern |
-| `match-vulnerabilities` | Match code against known vulnerability patterns |
-| `calculate-risk-score` | Calculate risk score for a finding |
-| `get-remediation` | Get fix guidance with language-specific code examples |
-| `get-report-template` | Get a report template (audit, executive, vulnerability) |
-| `map-compliance` | Map findings to OWASP, NIST CSF, CIS Controls, SOC 2 |
-| `get-methodology` | Get the 7-phase audit methodology |
-| `list-threat-models` | List available threat model templates |
-| `get-threat-model` | Get STRIDE, data flow, or threat scenario templates |
-
----
-
-## Self-Hosting
-
-### Local (stdio — no network, no API key)
-
-Run the MCP server as a direct subprocess inside VS Code:
-
-1. Clone and build:
-   ```bash
-   git clone https://github.com/Arihant1208/security-audit-monorepo.git
-   cd security-audit-monorepo
-   npm install
-   npm run build
-   ```
-
-2. Update `.vscode/mcp.json` in your project:
-   ```json
-   {
-     "servers": {
-       "security-audit": {
-         "type": "stdio",
-         "command": "node",
-         "args": ["/path/to/security-audit/packages/mcp-server/dist/index.js", "--stdio"],
-         "env": {
-           "SECURITY_AUDIT_SKIP_AUTH": "true"
-         }
-       }
-     }
-   }
-   ```
-
-This runs entirely locally — no network calls, no API keys needed.
-
-### Local (HTTP — with Docker)
-
-```bash
-git clone https://github.com/Arihant1208/security-audit-monorepo.git
-cd security-audit-monorepo
-docker compose -f infra/docker-compose.yml up -d
-```
-
-Server runs at `http://localhost:3000/mcp` with test key `sa_test_localdev1234567890abcdef`.
-
-### Deploy to Cloud (free tier)
-
-See the [Deployment Guide](deployment.md) for one-click deploys to Render, Fly.io, Railway, or Hugging Face Spaces.
-
----
-
-## Troubleshooting
-
-### "MCP server not responding"
-
-1. Check the MCP indicator in the VS Code status bar
-2. Verify your API key is correct
-3. For local servers: `curl http://localhost:3000/health`
-
-### "No tools available"
-
-1. Restart VS Code to re-initialize the MCP connection
-2. Check `.vscode/mcp.json` syntax — must be valid JSON
-3. Ensure the server URL is reachable
-
-### Agents don't appear in Copilot Chat
-
-1. Agent files must be in `.github/agents/` (not `.github/agent/`)
-2. Restart VS Code after adding agent files
-3. Verify YAML frontmatter in each `.agent.md` file
-
-### Scan produces no findings
-
-1. Verify the MCP connection is active (ask the scanner to list checklists)
-2. Small projects may have fewer findings — that's normal
-3. Check `audit-results/scan-results.md` for partial output
-
-### Want to re-scan after applying fixes?
-
-Run `/scan-codebase` again. The scanner always reads current code and overwrites previous results.
+| `get-attack-pattern` | Get detection/mitigation detail for a pattern |
+| `match-vulnerabilities` | Cross-reference code against known patterns |
+| `calculate-risk-score` | Score a finding (0–10) |
+| `get-remediation` | Fix guidance with language-specific code examples |
+| `get-report-template` | Get audit/executive/vulnerability report templates |
+| `map-compliance` | Map findings to OWASP, NIST, CIS, SOC 2 |
+| `get-methodology` | 7-phase audit methodology |
+| `list-threat-models` | Available threat model templates |
+| `get-threat-model` | STRIDE, data flow, threat scenario templates |
+| `analyze-business-context` | Industry classification, compliance mapping |
+| `generate-architecture-diagram` | Mermaid diagram generation |
+| `analyze-architecture` | Architecture analysis and recommendations |
+| `scan-licenses` | Dependency license detection |
+| `check-license-compatibility` | License conflict analysis |
+| `analyze-ai-opportunities` | AI/ML improvement opportunities |
+| `start-pipeline` | Start the 9-phase pipeline |
+| `get-pipeline-status` | Check pipeline progress |
