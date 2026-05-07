@@ -217,61 +217,342 @@ fly secrets set AI_ENGINE_URL="http://steve-ai-engine.internal:8100"
 
 For organizations needing high availability, compliance, and multi-region deployment.
 
-### AWS Deployment
+---
 
-| Component | AWS Service | Config |
-|-----------|-------------|--------|
-| Orchestrator | ECS Fargate | 2 tasks, 1 vCPU / 2 GB each |
-| AI Engine | ECS Fargate | 1 task, 1 vCPU / 2 GB |
-| Database | RDS PostgreSQL | db.t4g.micro ($15/mo) or Aurora Serverless v2 |
-| Load Balancer | ALB | Routes to ECS services |
-| CDN | CloudFront | Static site caching |
-| Secrets | Secrets Manager | API keys, DB credentials |
-| Monitoring | CloudWatch | Logs, metrics, alarms |
+## AWS Deployment
 
-**Estimated cost:** $80–200/mo depending on usage.
+### AWS Free Tier ($0/month for 12 months)
+
+AWS Free Tier gives you enough to run Steve at low volume for evaluation.
+
+| Component | AWS Service | Free Tier Limit |
+|-----------|-------------|-----------------|
+| Orchestrator | App Runner | 1,000 requests/mo, 1 GB mem (always free) |
+| Database | RDS PostgreSQL | db.t4g.micro, 20 GB — 12 months free |
+| Secrets | Secrets Manager | 30-day trial then $0.40/secret/mo |
+| Container Registry | ECR | 500 MB (always free) |
+
+#### Deploy with App Runner (Free)
 
 ```bash
-# Example ECS task definition (orchestrator)
-# Use infra/Dockerfile, set environment variables via Secrets Manager
-# ALB health check: /health
-# Target group: port 3000
+# 1. Push Docker image to ECR
+aws ecr create-repository --repository-name steve-orchestrator
+aws ecr get-login-password | docker login --username AWS --password-stdin $ACCOUNT.dkr.ecr.$REGION.amazonaws.com
+
+docker build -f infra/Dockerfile -t steve-orchestrator .
+docker tag steve-orchestrator:latest $ACCOUNT.dkr.ecr.$REGION.amazonaws.com/steve-orchestrator:latest
+docker push $ACCOUNT.dkr.ecr.$REGION.amazonaws.com/steve-orchestrator:latest
+
+# 2. Create App Runner service
+aws apprunner create-service \
+  --service-name steve-orchestrator \
+  --source-configuration '{
+    "ImageRepository": {
+      "ImageIdentifier": "'$ACCOUNT'.dkr.ecr.'$REGION'.amazonaws.com/steve-orchestrator:latest",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": {
+        "Port": "3000",
+        "RuntimeEnvironmentVariables": {
+          "SECURITY_AUDIT_API_KEYS": "your-key-here",
+          "DATABASE_URL": "postgresql://steve:password@your-rds-endpoint:5432/steve"
+        }
+      }
+    },
+    "AutoDeploymentsEnabled": true
+  }' \
+  --instance-configuration '{"Cpu": "0.25 vCPU", "Memory": "0.5 GB"}'
+
+# 3. Create RDS PostgreSQL (free tier)
+aws rds create-db-instance \
+  --db-instance-identifier steve-db \
+  --db-instance-class db.t4g.micro \
+  --engine postgres \
+  --engine-version 16 \
+  --master-username steve \
+  --master-user-password STRONG_PASSWORD_HERE \
+  --allocated-storage 20 \
+  --db-name steve \
+  --no-multi-az \
+  --publicly-accessible
 ```
 
-### Azure Deployment
+Endpoint: `https://<service-id>.<region>.awsapprunner.com`
 
-| Component | Azure Service | Config |
-|-----------|---------------|--------|
-| Orchestrator | Container Apps | 2 replicas, 1 vCPU / 2 GB |
-| AI Engine | Container Apps | 1 replica, 1 vCPU / 2 GB |
-| Database | Azure Database for PostgreSQL Flexible | Burstable B1ms ($12/mo) |
-| CDN | Azure CDN | Static site caching |
-| Secrets | Key Vault | Credentials, API keys |
-| Monitoring | Application Insights | APM, logs, dashboards |
+#### Alternative: Lambda + API Gateway (Always Free)
 
-**Estimated cost:** $60–150/mo.
+For very low usage (<1M requests/month), deploy as a Lambda function:
 
 ```bash
-# Deploy via Azure CLI
+# Use a Lambda-compatible wrapper (requires minor code change)
+# Free: 1M requests/mo, 400,000 GB-seconds compute
+# Downside: cold starts (~3-5s), 15min timeout per request
+```
+
+### AWS Paid ($25–200/month)
+
+| Component | Service | Config | Cost |
+|-----------|---------|--------|------|
+| Orchestrator | ECS Fargate | 2 tasks, 0.5 vCPU / 1 GB | $18/mo |
+| AI Engine | ECS Fargate | 1 task, 1 vCPU / 2 GB | $30/mo |
+| Database | RDS PostgreSQL | db.t4g.micro (Multi-AZ) | $15/mo |
+| Load Balancer | ALB | Routes to ECS | $16/mo |
+| Secrets | Secrets Manager | All credentials | $2/mo |
+| CDN | CloudFront | Static site | $0–5/mo |
+| Monitoring | CloudWatch | Logs + metrics | $0–10/mo |
+| **Total** | | | **$81–106/mo** |
+
+```bash
+# ECS Task Definition — Orchestrator
+cat > task-def.json << 'EOF'
+{
+  "family": "steve-orchestrator",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT:role/ecsTaskExecutionRole",
+  "containerDefinitions": [{
+    "name": "steve-orchestrator",
+    "image": "ACCOUNT.dkr.ecr.REGION.amazonaws.com/steve-orchestrator:latest",
+    "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
+    "healthCheck": {
+      "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+      "interval": 30,
+      "retries": 3
+    },
+    "secrets": [
+      { "name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT:secret:steve/db-url" },
+      { "name": "SECURITY_AUDIT_API_KEYS", "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT:secret:steve/api-keys" }
+    ],
+    "environment": [
+      { "name": "AI_ENGINE_URL", "value": "http://steve-ai-engine.steve-cluster:8100" },
+      { "name": "PORT", "value": "3000" }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/steve-orchestrator",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }]
+}
+EOF
+
+# Register and deploy
+aws ecs register-task-definition --cli-input-json file://task-def.json
+aws ecs create-service \
+  --cluster steve-cluster \
+  --service-name steve-orchestrator \
+  --task-definition steve-orchestrator \
+  --desired-count 2 \
+  --launch-type FARGATE \
+  --network-configuration '{
+    "awsvpcConfiguration": {
+      "subnets": ["subnet-xxx"],
+      "securityGroups": ["sg-xxx"],
+      "assignPublicIp": "ENABLED"
+    }
+  }' \
+  --load-balancers '[{
+    "targetGroupArn": "arn:aws:elasticloadbalancing:...:targetgroup/steve/xxx",
+    "containerName": "steve-orchestrator",
+    "containerPort": 3000
+  }]'
+```
+
+### AWS Production Checklist
+
+- [ ] VPC with private subnets for ECS tasks + RDS
+- [ ] ALB in public subnet with HTTPS (ACM certificate)
+- [ ] RDS not publicly accessible (private subnet only)
+- [ ] ECS tasks pull secrets from Secrets Manager
+- [ ] CloudWatch alarms on 5xx errors and high latency
+- [ ] RDS automated backups enabled (7-day retention)
+- [ ] ECR image scanning enabled
+- [ ] WAF on ALB for rate limiting
+
+---
+
+## Azure Deployment
+
+### Azure Free Tier ($0/month)
+
+Azure offers generous always-free and 12-month free services.
+
+| Component | Azure Service | Free Tier Limit |
+|-----------|---------------|-----------------|
+| Orchestrator | Container Apps | 2M requests/mo, 180,000 vCPU-s, 360,000 GiB-s (always free) |
+| Database | Azure Database for PostgreSQL Flexible | Burstable B1ms — 12 months free (750 hrs/mo) |
+| Secrets | Key Vault | 10,000 operations/mo (always free) |
+| Container Registry | ACR Basic | — (use Docker Hub free or GitHub Container Registry) |
+| Monitoring | Application Insights | 5 GB/mo ingestion (always free) |
+
+#### Deploy with Container Apps (Free)
+
+```bash
+# 1. Create resource group and environment
+az group create --name steve-rg --location eastus
+az containerapp env create \
+  --name steve-env \
+  --resource-group steve-rg \
+  --location eastus
+
+# 2. Create PostgreSQL (12-month free: Burstable B1ms, 32 GB)
+az postgres flexible-server create \
+  --resource-group steve-rg \
+  --name steve-db \
+  --location eastus \
+  --sku-name Standard_B1ms \
+  --tier Burstable \
+  --storage-size 32 \
+  --admin-user steve \
+  --admin-password STRONG_PASSWORD_HERE \
+  --version 16 \
+  --yes
+
+# Create the database
+az postgres flexible-server db create \
+  --resource-group steve-rg \
+  --server-name steve-db \
+  --database-name steve
+
+# Allow Azure services to connect
+az postgres flexible-server firewall-rule create \
+  --resource-group steve-rg \
+  --name steve-db \
+  --rule-name AllowAzure \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 0.0.0.0
+
+# 3. Apply migrations
+PGHOST=steve-db.postgres.database.azure.com \
+PGUSER=steve PGPASSWORD=STRONG_PASSWORD_HERE PGDATABASE=steve \
+psql -f packages/db/migrations/001-init.sql
+psql -f packages/db/migrations/002-website-auth.sql
+
+# 4. Deploy the orchestrator (free consumption plan)
 az containerapp create \
   --name steve-orchestrator \
   --resource-group steve-rg \
   --environment steve-env \
   --image ghcr.io/arihant1208/steve-orchestrator:latest \
   --target-port 3000 \
-  --env-vars DATABASE_URL=secretref:db-url \
-  --min-replicas 1 --max-replicas 5
+  --ingress external \
+  --min-replicas 0 \
+  --max-replicas 1 \
+  --cpu 0.25 --memory 0.5Gi \
+  --env-vars \
+    "SECURITY_AUDIT_API_KEYS=your-key-here" \
+    "DATABASE_URL=postgresql://steve:STRONG_PASSWORD_HERE@steve-db.postgres.database.azure.com:5432/steve?sslmode=require" \
+    "PORT=3000"
+```
 
+Endpoint: `https://steve-orchestrator.<env-hash>.eastus.azurecontainerapps.io`
+
+#### Alternative: Azure App Service (Free F1)
+
+```bash
+# Free F1: 60 min compute/day, 1 GB RAM, shared infrastructure
+# Good for testing, not for production (sleeps after inactivity)
+az webapp create \
+  --resource-group steve-rg \
+  --plan steve-plan \
+  --name steve-security-agent \
+  --deployment-container-image-name ghcr.io/arihant1208/steve-orchestrator:latest
+
+az appservice plan create \
+  --name steve-plan \
+  --resource-group steve-rg \
+  --sku F1 --is-linux
+
+az webapp config appsettings set \
+  --resource-group steve-rg \
+  --name steve-security-agent \
+  --settings SECURITY_AUDIT_API_KEYS="your-key" PORT=8080
+```
+
+Endpoint: `https://steve-security-agent.azurewebsites.net`
+
+### Azure Paid ($25–150/month)
+
+| Component | Service | Config | Cost |
+|-----------|---------|--------|------|
+| Orchestrator | Container Apps (Dedicated) | 2 replicas, 0.5 vCPU / 1 GB | $30/mo |
+| AI Engine | Container Apps (Dedicated) | 1 replica, 1 vCPU / 2 GB | $45/mo |
+| Database | PostgreSQL Flexible (Burstable B2s) | 2 vCPU, 4 GB, 64 GB storage | $25/mo |
+| Secrets | Key Vault | Standard | $0.03/op |
+| CDN | Azure Front Door (Free tier) | Global routing + caching | $0 |
+| Monitoring | Application Insights | 5 GB/mo free | $0 |
+| **Total** | | | **$100–150/mo** |
+
+```bash
+# Production Container Apps with dedicated workload profile
+az containerapp env create \
+  --name steve-env-prod \
+  --resource-group steve-rg \
+  --location eastus \
+  --enable-workload-profiles
+
+# Orchestrator — dedicated compute, always on
+az containerapp create \
+  --name steve-orchestrator \
+  --resource-group steve-rg \
+  --environment steve-env-prod \
+  --image ghcr.io/arihant1208/steve-orchestrator:latest \
+  --target-port 3000 \
+  --ingress external \
+  --min-replicas 2 --max-replicas 10 \
+  --cpu 0.5 --memory 1Gi \
+  --secrets "db-url=postgresql://steve:PASSWORD@steve-db.postgres.database.azure.com:5432/steve?sslmode=require" \
+  --env-vars "DATABASE_URL=secretref:db-url" "PORT=3000"
+
+# AI Engine — internal only
 az containerapp create \
   --name steve-ai-engine \
   --resource-group steve-rg \
-  --environment steve-env \
+  --environment steve-env-prod \
   --image ghcr.io/arihant1208/steve-ai-engine:latest \
   --target-port 8100 \
-  --min-replicas 1 --max-replicas 3
+  --ingress internal \
+  --min-replicas 1 --max-replicas 5 \
+  --cpu 1 --memory 2Gi
+
+# Connect orchestrator to AI engine (internal FQDN)
+az containerapp update \
+  --name steve-orchestrator \
+  --resource-group steve-rg \
+  --set-env-vars "AI_ENGINE_URL=http://steve-ai-engine.internal.eastus.azurecontainerapps.io:8100"
+
+# Custom domain + managed certificate
+az containerapp hostname add \
+  --name steve-orchestrator \
+  --resource-group steve-rg \
+  --hostname steve.yourdomain.com
+
+az containerapp hostname bind \
+  --name steve-orchestrator \
+  --resource-group steve-rg \
+  --hostname steve.yourdomain.com \
+  --environment steve-env-prod \
+  --validation-method CNAME
 ```
 
-### Google Cloud Deployment
+### Azure Production Checklist
+
+- [ ] Container Apps environment with VNet integration
+- [ ] PostgreSQL in private subnet (private endpoint)
+- [ ] Key Vault for all secrets (not env vars)
+- [ ] Managed identity for Container Apps → Key Vault access
+- [ ] Application Insights connected for APM
+- [ ] Azure Front Door or custom domain with HTTPS
+- [ ] Database geo-redundant backups enabled
+- [ ] Diagnostic settings → Log Analytics workspace
+
+---
+
+## Google Cloud Deployment
 
 | Component | GCP Service | Config |
 |-----------|-------------|--------|
@@ -303,6 +584,21 @@ gcloud run deploy steve-ai-engine \
   --max-instances 5 \
   --region us-central1
 ```
+
+---
+
+## Cloud Comparison at a Glance
+
+| | AWS | Azure | GCP |
+|---|---|---|---|
+| **Free tier compute** | App Runner (1K req/mo) | Container Apps (2M req/mo) | Cloud Run (2M req/mo) |
+| **Free tier DB** | RDS t4g.micro (12 mo) | PostgreSQL B1ms (12 mo) | Cloud SQL f1-micro (trial) |
+| **Best free option** | App Runner + RDS | Container Apps + PostgreSQL Flex | Cloud Run + AlloyDB trial |
+| **Paid entry point** | ~$80/mo (ECS Fargate) | ~$100/mo (Container Apps Dedicated) | ~$50/mo (Cloud Run + Cloud SQL) |
+| **Lowest cold start** | App Runner (~1-2s) | Container Apps (~2-3s) | Cloud Run (~1-2s) |
+| **Easiest setup** | App Runner | Container Apps | Cloud Run |
+| **Enterprise features** | ALB, WAF, VPC, IAM | Front Door, VNet, Managed Identity | Cloud Armor, VPC SC |
+| **Best for** | AWS-native orgs | Microsoft/Azure shops | Cost-optimized, GCP users |
 
 ### Multi-Cloud Architecture
 
