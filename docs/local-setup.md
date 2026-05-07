@@ -241,3 +241,5 @@ npm run build
 
 - Orchestrator serves the site from `packages/site/` — ensure you started from the repo root or that the `site` directory is accessible relative to the `dist/` folder
 - Check `http://localhost:3000/health` first — if health works but the site doesn't load, it's a static file path issue
+
+

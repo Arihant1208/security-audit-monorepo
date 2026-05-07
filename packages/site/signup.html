@@ -68,8 +68,14 @@
         <div class="setup-section" style="margin-top:24px;">
           <h3>Quick Setup</h3>
           <p>Install Steve's agent files into your project:</p>
+          <p style="margin-top:8px;margin-bottom:4px;"><strong>New project:</strong></p>
           <div class="code-block">
             <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p style="margin-top:12px;margin-bottom:4px;"><strong>Existing project</strong> (from your project root):</p>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.vscode .vscode --force && npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.github .github --force</code>
             <button type="button" class="copy-btn">Copy</button>
           </div>
           <p style="margin-top:12px;">Then open VS Code and type <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);color:var(--accent);">/steve-audit</code> in Copilot Chat.</p>

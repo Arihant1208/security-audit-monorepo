@@ -69,8 +69,14 @@
         <div class="setup-section">
           <h3>Step 2 — Install Steve Agent Files</h3>
           <p>Copy the Steve agent file and MCP connection config into your project:</p>
+          <p style="margin-top: 8px; margin-bottom: 4px;"><strong>New project:</strong></p>
           <div class="code-block">
             <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project</code>
+            <button type="button" class="copy-btn">Copy</button>
+          </div>
+          <p style="margin-top: 12px; margin-bottom: 4px;"><strong>Existing project</strong> (run from your project root):</p>
+          <div class="code-block">
+            <code>npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.vscode .vscode --force && npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.github .github --force</code>
             <button type="button" class="copy-btn">Copy</button>
           </div>
           <p style="margin-top: 12px;">This adds these files to your project (zero dependencies, no build step):</p>
@@ -331,6 +337,7 @@
 ├── 06-ai-opportunities.md
 ├── 07-risk-remediation.md          ← Ranked fix plan
 ├── 08-executive-summary.md         ← For leadership
+├── steve-report.json               ← Upload to dashboard
 └── findings/
     ├── V-001.md                    ← Individual CVE-style reports
     └── ...</pre>
@@ -351,6 +358,43 @@
                 <tr><td><strong>0 – 1.9</strong></td><td>Informational</td><td>Address opportunistically</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <h3>Upload to Dashboard</h3>
+          <p>Steve generates a <code>steve-report.json</code> file alongside the markdown reports. Upload it to view findings in the web dashboard.</p>
+          <div style="margin:16px 0;">
+            <strong>Three ways to get findings into the dashboard:</strong>
+          </div>
+          <div class="config-table" style="max-width:680px;">
+            <table>
+              <thead><tr><th>Method</th><th>How</th><th>Best For</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Upload Button</strong></td>
+                  <td>Go to <a href="dashboard.html">Dashboard</a> → "Upload Report" → drop <code>steve-report.json</code></td>
+                  <td>Manual / one-off audits</td>
+                </tr>
+                <tr>
+                  <td><strong>API Upload</strong></td>
+                  <td><code>POST /api/reports</code> with the JSON content (see API docs below)</td>
+                  <td>CI/CD pipelines, automation</td>
+                </tr>
+                <tr>
+                  <td><strong>Automatic</strong></td>
+                  <td>Run full stack mode (Docker Compose) — reports save to DB automatically</td>
+                  <td>Teams, always-on setup</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tip-box" style="margin-top:16px;">
+            <strong>CI/CD example:</strong> Add this to your pipeline after running Steve:
+          </div>
+          <div class="code-block" style="margin-top:8px;">
+            <code>curl -X POST https://your-server/api/reports -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d @audit-results/steve-report.json</code>
+            <button type="button" class="copy-btn">Copy</button>
           </div>
         </div>
       </div>

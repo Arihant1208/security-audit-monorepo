@@ -303,6 +303,51 @@ router.get("/reports/:id", async (req: Request, res: Response) => {
   }
 });
 
+// ── POST /api/reports ─────────────────────────────────────────────────────
+router.post("/reports", async (req: Request, res: Response) => {
+  try {
+    const userId = await requireSession(req, res);
+    if (!userId) return;
+    const sql = getSQL()!;
+
+    const { project_name, status, risk_score, summary, business_context, findings, pipeline_state } = req.body;
+
+    if (!project_name) {
+      res.status(400).json({ error: "project_name is required" });
+      return;
+    }
+
+    const validStatuses = ["running", "completed", "failed"];
+    const reportStatus = validStatuses.includes(status) ? status : "completed";
+
+    if (risk_score !== undefined && (typeof risk_score !== "number" || risk_score < 0 || risk_score > 10)) {
+      res.status(400).json({ error: "risk_score must be a number between 0 and 10" });
+      return;
+    }
+
+    const rows = await sql`
+      INSERT INTO audit_reports (user_id, project_name, status, risk_score, summary, business_context, findings, pipeline_state, completed_at)
+      VALUES (
+        ${userId},
+        ${project_name},
+        ${reportStatus},
+        ${risk_score ?? null},
+        ${summary ? JSON.stringify(summary) : null}::jsonb,
+        ${business_context ? JSON.stringify(business_context) : null}::jsonb,
+        ${findings ? JSON.stringify(findings) : null}::jsonb,
+        ${pipeline_state ? JSON.stringify(pipeline_state) : null}::jsonb,
+        ${reportStatus === "completed" ? new Date().toISOString() : null}
+      )
+      RETURNING id, project_name, status, risk_score, created_at
+    `;
+
+    res.status(201).json({ report: rows[0] });
+  } catch (err) {
+    console.error("Create report error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // ── GET /api/usage ────────────────────────────────────────────────────────
 router.get("/usage", async (req: Request, res: Response) => {
   try {

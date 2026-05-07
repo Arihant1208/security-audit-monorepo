@@ -44,6 +44,150 @@ document.addEventListener("DOMContentLoaded", () => {
   loadKeys();
   loadUsage();
 
+  // ── Upload Report ─────────────────────────────────────────────────────
+  const uploadBtn = document.getElementById("upload-report-btn");
+  const uploadModal = document.getElementById("upload-modal");
+  const uploadCancelBtn = document.getElementById("upload-cancel-btn");
+  const uploadSubmitBtn = document.getElementById("upload-submit-btn");
+  const uploadDropzone = document.getElementById("upload-dropzone");
+  const uploadFileInput = document.getElementById("upload-file-input");
+  const uploadPreview = document.getElementById("upload-preview");
+  const uploadError = document.getElementById("upload-error");
+
+  let pendingReport = null;
+
+  uploadBtn.addEventListener("click", () => {
+    uploadModal.classList.remove("hidden");
+    uploadModal.style.display = "flex";
+    resetUpload();
+  });
+
+  uploadCancelBtn.addEventListener("click", () => {
+    uploadModal.classList.add("hidden");
+    uploadModal.style.display = "none";
+    resetUpload();
+  });
+
+  // Click outside modal to close
+  uploadModal.addEventListener("click", (e) => {
+    if (e.target === uploadModal) {
+      uploadModal.classList.add("hidden");
+      uploadModal.style.display = "none";
+      resetUpload();
+    }
+  });
+
+  uploadDropzone.addEventListener("click", () => uploadFileInput.click());
+  uploadDropzone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadDropzone.style.borderColor = "var(--accent)";
+  });
+  uploadDropzone.addEventListener("dragleave", () => {
+    uploadDropzone.style.borderColor = "var(--border)";
+  });
+  uploadDropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadDropzone.style.borderColor = "var(--border)";
+    const file = e.dataTransfer.files[0];
+    if (file) handleUploadFile(file);
+  });
+  uploadFileInput.addEventListener("change", () => {
+    const file = uploadFileInput.files[0];
+    if (file) handleUploadFile(file);
+  });
+
+  function handleUploadFile(file) {
+    uploadError.classList.add("hidden");
+    uploadPreview.classList.add("hidden");
+    pendingReport = null;
+
+    if (!file.name.endsWith(".json")) {
+      showUploadError("Please select a .json file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showUploadError("File too large (max 10 MB).");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data.project_name) {
+          showUploadError('Invalid report: missing "project_name" field.');
+          return;
+        }
+        pendingReport = data;
+        showUploadPreview(data);
+        uploadSubmitBtn.disabled = false;
+      } catch (err) {
+        showUploadError("Invalid JSON: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function showUploadPreview(data) {
+    document.getElementById("upload-project-name").textContent = data.project_name;
+    const badge = document.getElementById("upload-risk-badge");
+    if (data.risk_score != null) {
+      badge.textContent = "Risk: " + data.risk_score;
+      badge.className = "severity-badge " + (data.risk_score >= 9 ? "critical" : data.risk_score >= 7 ? "high" : data.risk_score >= 4 ? "medium" : "low");
+    } else {
+      badge.textContent = "No score";
+      badge.className = "severity-badge";
+    }
+    const summary = data.summary || {};
+    const findings = Array.isArray(data.findings) ? data.findings.length : 0;
+    document.getElementById("upload-summary-text").textContent =
+      `${findings} findings — Critical: ${summary.critical || 0}, High: ${summary.high || 0}, Medium: ${summary.medium || 0}, Low: ${summary.low || 0}`;
+    uploadPreview.classList.remove("hidden");
+  }
+
+  function showUploadError(msg) {
+    document.getElementById("upload-error-text").textContent = msg;
+    uploadError.classList.remove("hidden");
+  }
+
+  function resetUpload() {
+    pendingReport = null;
+    uploadPreview.classList.add("hidden");
+    uploadError.classList.add("hidden");
+    uploadSubmitBtn.disabled = true;
+    uploadFileInput.value = "";
+  }
+
+  uploadSubmitBtn.addEventListener("click", async () => {
+    if (!pendingReport) return;
+    uploadSubmitBtn.disabled = true;
+    uploadSubmitBtn.textContent = "Uploading...";
+
+    try {
+      const res = await apiFetch("/api/reports", {
+        method: "POST",
+        body: JSON.stringify(pendingReport),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showUploadError(data.error || "Upload failed.");
+        uploadSubmitBtn.disabled = false;
+        uploadSubmitBtn.textContent = "Upload";
+        return;
+      }
+      // Success
+      uploadModal.classList.add("hidden");
+      uploadModal.style.display = "none";
+      resetUpload();
+      uploadSubmitBtn.textContent = "Upload";
+      loadReports(); // Refresh report list
+    } catch (err) {
+      showUploadError("Network error: " + err.message);
+      uploadSubmitBtn.disabled = false;
+      uploadSubmitBtn.textContent = "Upload";
+    }
+  });
+
   // ── API Keys ──────────────────────────────────────────────────────────
   const createKeyBtn = document.getElementById("create-key-btn");
   const newKeyForm = document.getElementById("new-key-form");

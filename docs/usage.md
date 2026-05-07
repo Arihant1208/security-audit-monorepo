@@ -20,8 +20,29 @@ Complete guide to using Steve — from setup to your first autonomous security a
 2. Create an API key from the dashboard
 3. Copy the agent files into your project:
 
+**New project (empty directory):**
+
 ```bash
 npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project
+```
+
+**Existing project (already has files):**
+
+```bash
+# From your project root:
+npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.vscode .vscode --force
+npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.github .github --force
+```
+
+Or manually copy the files:
+
+```bash
+# Clone temporarily and copy what you need
+git clone --depth 1 --sparse https://github.com/Arihant1208/security-audit-monorepo.git /tmp/steve
+cd /tmp/steve && git sparse-checkout set packages/vscode-agent
+cp -r packages/vscode-agent/.vscode /path/to/your-project/
+cp -r packages/vscode-agent/.github /path/to/your-project/
+rm -rf /tmp/steve
 ```
 
 4. VS Code reads `.vscode/mcp.json` and prompts for your server URL and API key
@@ -139,11 +160,66 @@ audit-results/
 ├── architecture-diagrams/   Mermaid diagrams
 ├── license-report.md        Dependency license analysis
 ├── remediation-log.md       Log of applied fixes
+├── steve-report.json        Dashboard-uploadable JSON (see below)
 └── findings/
     ├── V-001.md             Individual finding reports
     ├── V-002.md
     └── ...
 ```
+
+### `steve-report.json` — Dashboard Upload Format
+
+Steve automatically generates this file at the end of every audit. It contains all findings in a structured JSON format that can be uploaded to the dashboard.
+
+```json
+{
+  "project_name": "my-project",
+  "status": "completed",
+  "risk_score": 6.2,
+  "summary": { "critical": 1, "high": 3, "medium": 8, "low": 12, "info": 5 },
+  "business_context": {
+    "industry": "fintech",
+    "data_sensitivity": "high",
+    "compliance_requirements": ["SOC2", "PCI-DSS"],
+    "description": "Payment processing API"
+  },
+  "findings": [
+    {
+      "id": "V-001",
+      "title": "SQL Injection in /api/search",
+      "severity": "critical",
+      "risk_score": 9.2,
+      "layer": "Application Security",
+      "component": "src/api/search.ts",
+      "description": "User input passed directly to query builder",
+      "evidence": "Line 42: db.query(`SELECT * FROM users WHERE name = '${req.query.name}'`)",
+      "impact": "Full database read/write access",
+      "remediation": "Use parameterized queries",
+      "owasp": "A03:2021",
+      "cwe": "CWE-89"
+    }
+  ],
+  "pipeline_state": {
+    "phaseResults": [
+      { "phase": 0, "status": "completed" },
+      { "phase": 1, "status": "completed" },
+      ...
+    ]
+  }
+}
+```
+
+**Upload methods:**
+
+1. **Dashboard UI** — go to the dashboard, click "Upload Report", drop the file
+2. **API** — `POST /api/reports` with the JSON body (requires session token)
+3. **CI/CD** — pipe the file to the API in your CI pipeline:
+   ```bash
+   curl -X POST https://your-server/api/reports \
+     -H "Authorization: Bearer $TOKEN" \
+     -H "Content-Type: application/json" \
+     -d @audit-results/steve-report.json
+   ```
 
 ### Risk Scores
 
@@ -169,6 +245,66 @@ The website at the server URL provides:
   - **API Keys** — create, view, and revoke keys
   - **Usage** — tool call analytics for the last 30 days
 - **Documentation** — embedded quick start and tool reference
+
+### Uploading Findings to the Dashboard
+
+After running an audit locally (via VS Code or CLI), you can upload findings to the hosted dashboard so your team can view them in the web UI.
+
+#### Option 1: API Upload (cURL)
+
+```bash
+# 1. Log in to get a session token
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "your-password"}' \
+  | jq -r '.token')
+
+# 2. Upload your audit results
+curl -X POST http://localhost:3000/api/reports \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "project_name": "my-project",
+    "status": "completed",
+    "risk_score": 6.2,
+    "summary": { "critical": 1, "high": 3, "medium": 8, "low": 12, "info": 5 },
+    "findings": [
+      {
+        "id": "V-001",
+        "title": "SQL Injection in /api/search",
+        "severity": "critical",
+        "risk_score": 9.2,
+        "layer": "Application Security",
+        "evidence": "User input passed directly to query builder",
+        "remediation": "Use parameterized queries"
+      }
+    ]
+  }'
+```
+
+#### Option 2: CLI Upload (planned)
+
+```bash
+steve report --upload --server http://localhost:3000
+```
+
+#### Option 3: Automatic (Full Stack mode)
+
+When running the full stack (orchestrator + DB), reports created through the MCP tools during a Copilot Chat audit are automatically stored in the database and visible in the dashboard at http://localhost:3000.
+
+### API Reference: `POST /api/reports`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project_name` | string | Yes | Name of the audited project |
+| `status` | string | No | `running`, `completed`, or `failed` (default: `completed`) |
+| `risk_score` | number | No | Overall risk score (0–10) |
+| `summary` | object | No | Finding counts: `{ critical, high, medium, low, info }` |
+| `business_context` | object | No | Business context from Phase 0 |
+| `findings` | array | No | Array of finding objects |
+| `pipeline_state` | object | No | Full pipeline state snapshot |
+
+Response: `201 Created` with the new report's `id`, `project_name`, `status`, `risk_score`, and `created_at`.
 
 ---
 

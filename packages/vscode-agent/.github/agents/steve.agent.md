@@ -160,8 +160,61 @@ Produce the final deliverables:
    - License compliance status
    - AI opportunity highlights
    - Remediation roadmap
+5. **Generate `audit-results/steve-report.json`** — the dashboard-uploadable format:
 
-**Output:** Write `audit-results/08-executive-summary.md` and `audit-results/FULL-REPORT.md`
+```json
+{
+  "project_name": "project-name",
+  "status": "completed",
+  "risk_score": 6.2,
+  "summary": {
+    "critical": 1,
+    "high": 3,
+    "medium": 8,
+    "low": 12,
+    "info": 5
+  },
+  "business_context": {
+    "industry": "fintech",
+    "data_sensitivity": "high",
+    "compliance_requirements": ["SOC2", "PCI-DSS"],
+    "description": "Brief description of the project"
+  },
+  "findings": [
+    {
+      "id": "V-001",
+      "title": "Finding title",
+      "severity": "critical",
+      "risk_score": 9.2,
+      "layer": "Application Security",
+      "component": "src/api/users.ts",
+      "description": "Detailed description",
+      "evidence": "Code snippet or proof",
+      "impact": "What could happen if exploited",
+      "remediation": "How to fix it",
+      "owasp": "A03:2021",
+      "cwe": "CWE-89"
+    }
+  ],
+  "pipeline_state": {
+    "phaseResults": [
+      { "phase": 0, "status": "completed" },
+      { "phase": 1, "status": "completed" },
+      { "phase": 2, "status": "completed" },
+      { "phase": 3, "status": "completed" },
+      { "phase": 4, "status": "completed" },
+      { "phase": 5, "status": "completed" },
+      { "phase": 6, "status": "completed" },
+      { "phase": 7, "status": "completed" },
+      { "phase": 8, "status": "completed" }
+    ]
+  }
+}
+```
+
+This file can be uploaded directly to the Steve dashboard via the "Upload Report" button or the `POST /api/reports` endpoint.
+
+**Output:** Write `audit-results/08-executive-summary.md`, `audit-results/FULL-REPORT.md`, and `audit-results/steve-report.json`
 
 ---
 
