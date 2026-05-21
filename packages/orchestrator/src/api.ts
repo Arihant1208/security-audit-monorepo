@@ -1,12 +1,14 @@
 /**
- * Steve Website API — Auth, API Keys, Reports, Usage
+ * Steve Website API — Auth, API Keys, Reports, Usage, Teams
  *
  * Express router mounted at /api on the orchestrator.
+ * Supports both legacy session tokens and Clerk JWT authentication.
  */
 
 import { Router, type Request, type Response } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { getSQL } from "./sql-client.js";
+import { validateClerkJWT } from "./auth.js";
 
 const router = Router();
 
@@ -29,7 +31,7 @@ function verifyPassword(password: string, stored: string): boolean {
   return check === hash;
 }
 
-// Middleware: require session token
+// Middleware: require session token or Clerk JWT
 async function requireSession(req: Request, res: Response): Promise<string | null> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
@@ -42,6 +44,12 @@ async function requireSession(req: Request, res: Response): Promise<string | nul
     res.status(503).json({ error: "Database not configured" });
     return null;
   }
+
+  // Try Clerk JWT first
+  const clerkUserId = await validateClerkJWT(token);
+  if (clerkUserId) return clerkUserId;
+
+  // Fallback to legacy session token
   const hash = hashToken(token);
   const rows = await sql`
     SELECT s.user_id FROM sessions s
@@ -269,12 +277,29 @@ router.get("/reports", async (req: Request, res: Response) => {
     if (!userId) return;
     const sql = getSQL()!;
 
-    const reports = await sql`
-      SELECT id, project_name, status, risk_score, summary, created_at, completed_at
-      FROM audit_reports WHERE user_id = ${userId}
-      ORDER BY created_at DESC
-      LIMIT 50
-    `;
+    // Include team reports if user belongs to a team
+    const userRow = await sql`SELECT team_id FROM users WHERE id = ${userId} LIMIT 1`;
+    const teamId = userRow[0]?.team_id as string | null;
+
+    let reports;
+    if (teamId) {
+      reports = await sql`
+        SELECT r.id, r.project_name, r.status, r.risk_score, r.summary, r.created_at, r.completed_at,
+               u.display_name as author_name
+        FROM audit_reports r
+        LEFT JOIN users u ON r.user_id = u.id
+        WHERE r.user_id = ${userId} OR r.team_id = ${teamId}
+        ORDER BY r.created_at DESC
+        LIMIT 50
+      `;
+    } else {
+      reports = await sql`
+        SELECT id, project_name, status, risk_score, summary, created_at, completed_at
+        FROM audit_reports WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+    }
     res.json({ reports });
   } catch (err) {
     console.error("List reports error:", err);
@@ -289,11 +314,24 @@ router.get("/reports/:id", async (req: Request, res: Response) => {
     if (!userId) return;
     const sql = getSQL()!;
 
-    const rows = await sql`
-      SELECT * FROM audit_reports
-      WHERE id = ${req.params.id} AND user_id = ${userId}
-      LIMIT 1
-    `;
+    // Allow access if user owns report or is on the same team
+    const userRow = await sql`SELECT team_id FROM users WHERE id = ${userId} LIMIT 1`;
+    const teamId = userRow[0]?.team_id as string | null;
+
+    let rows;
+    if (teamId) {
+      rows = await sql`
+        SELECT * FROM audit_reports
+        WHERE id = ${req.params.id} AND (user_id = ${userId} OR team_id = ${teamId})
+        LIMIT 1
+      `;
+    } else {
+      rows = await sql`
+        SELECT * FROM audit_reports
+        WHERE id = ${req.params.id} AND user_id = ${userId}
+        LIMIT 1
+      `;
+    }
     if (!rows.length) { res.status(404).json({ error: "Report not found" }); return; }
 
     res.json({ report: rows[0] });
@@ -325,10 +363,15 @@ router.post("/reports", async (req: Request, res: Response) => {
       return;
     }
 
+    // Attach team_id if user is on a team
+    const userRow = await sql`SELECT team_id FROM users WHERE id = ${userId} LIMIT 1`;
+    const teamId = userRow[0]?.team_id ?? null;
+
     const rows = await sql`
-      INSERT INTO audit_reports (user_id, project_name, status, risk_score, summary, business_context, findings, pipeline_state, completed_at)
+      INSERT INTO audit_reports (user_id, team_id, project_name, status, risk_score, summary, business_context, findings, pipeline_state, completed_at)
       VALUES (
         ${userId},
+        ${teamId},
         ${project_name},
         ${reportStatus},
         ${risk_score ?? null},
@@ -386,6 +429,228 @@ router.get("/usage", async (req: Request, res: Response) => {
     res.json({ total: total || { total: 0, active_days: 0 }, by_tool: recent, daily });
   } catch (err) {
     console.error("Usage error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// TEAMS
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── GET /api/team ─────────────────────────────────────────────────────────
+router.get("/team", async (req: Request, res: Response) => {
+  try {
+    const userId = await requireSession(req, res);
+    if (!userId) return;
+    const sql = getSQL()!;
+
+    const userRow = await sql`SELECT team_id FROM users WHERE id = ${userId} LIMIT 1`;
+    const teamId = userRow[0]?.team_id as string | null;
+
+    if (!teamId) {
+      res.json({ team: null });
+      return;
+    }
+
+    const [team] = await sql`SELECT id, name, created_at FROM teams WHERE id = ${teamId}`;
+    if (!team) {
+      res.json({ team: null });
+      return;
+    }
+
+    const members = await sql`
+      SELECT tm.id, tm.user_id, tm.role, tm.joined_at,
+             u.email, u.display_name
+      FROM team_members tm
+      JOIN users u ON tm.user_id = u.id
+      WHERE tm.team_id = ${teamId}
+      ORDER BY tm.joined_at ASC
+    `;
+
+    res.json({ team: { ...team, members } });
+  } catch (err) {
+    console.error("Get team error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── POST /api/teams ───────────────────────────────────────────────────────
+router.post("/teams", async (req: Request, res: Response) => {
+  try {
+    const userId = await requireSession(req, res);
+    if (!userId) return;
+    const sql = getSQL()!;
+
+    const { name } = req.body;
+    if (!name?.trim()) {
+      res.status(400).json({ error: "Team name is required" });
+      return;
+    }
+
+    // Check if user already on a team
+    const userRow = await sql`SELECT team_id FROM users WHERE id = ${userId} LIMIT 1`;
+    if (userRow[0]?.team_id) {
+      res.status(409).json({ error: "You are already on a team" });
+      return;
+    }
+
+    const teamId = randomUUID();
+    await sql`INSERT INTO teams (id, name) VALUES (${teamId}, ${name.trim()})`;
+
+    // Add creator as admin
+    await sql`
+      INSERT INTO team_members (team_id, user_id, role)
+      VALUES (${teamId}, ${userId}, 'admin')
+    `;
+
+    // Set user's team_id
+    await sql`UPDATE users SET team_id = ${teamId} WHERE id = ${userId}`;
+
+    res.status(201).json({ team: { id: teamId, name: name.trim(), members: [] } });
+  } catch (err) {
+    console.error("Create team error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── POST /api/teams/:id/invite ────────────────────────────────────────────
+router.post("/teams/:id/invite", async (req: Request, res: Response) => {
+  try {
+    const userId = await requireSession(req, res);
+    if (!userId) return;
+    const sql = getSQL()!;
+
+    const teamId = req.params.id;
+    const { email } = req.body;
+    if (!email?.trim()) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+
+    // Verify user is admin of this team
+    const membership = await sql`
+      SELECT role FROM team_members
+      WHERE team_id = ${teamId} AND user_id = ${userId}
+      LIMIT 1
+    `;
+    if (!membership.length || membership[0].role !== "admin") {
+      res.status(403).json({ error: "Only team admins can invite members" });
+      return;
+    }
+
+    // Check if user already on team
+    const existingMember = await sql`
+      SELECT u.id FROM users u
+      JOIN team_members tm ON tm.user_id = u.id AND tm.team_id = ${teamId}
+      WHERE u.email = ${email.trim()}
+      LIMIT 1
+    `;
+    if (existingMember.length) {
+      res.status(409).json({ error: "User is already a team member" });
+      return;
+    }
+
+    // Check if invited user exists — if so, add directly
+    const invitedUser = await sql`
+      SELECT id FROM users WHERE email = ${email.trim()} LIMIT 1
+    `;
+    if (invitedUser.length) {
+      const iUserId = invitedUser[0].id as string;
+      await sql`
+        INSERT INTO team_members (team_id, user_id, role)
+        VALUES (${teamId}, ${iUserId}, 'member')
+        ON CONFLICT (team_id, user_id) DO NOTHING
+      `;
+      await sql`UPDATE users SET team_id = ${teamId} WHERE id = ${iUserId}`;
+      res.json({ ok: true, added_directly: true });
+    } else {
+      // Create invite token for future signup
+      const token = randomBytes(32).toString("hex");
+      await sql`
+        INSERT INTO team_invites (team_id, email, invited_by, token)
+        VALUES (${teamId}, ${email.trim()}, ${userId}, ${token})
+      `;
+      res.json({ ok: true, invite_token: token });
+    }
+  } catch (err) {
+    console.error("Invite error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── DELETE /api/teams/:id/members/:userId ─────────────────────────────────
+router.delete("/teams/:id/members/:userId", async (req: Request, res: Response) => {
+  try {
+    const currentUserId = await requireSession(req, res);
+    if (!currentUserId) return;
+    const sql = getSQL()!;
+
+    const teamId = req.params.id;
+    const targetUserId = req.params.userId;
+
+    // Verify current user is admin
+    const membership = await sql`
+      SELECT role FROM team_members
+      WHERE team_id = ${teamId} AND user_id = ${currentUserId}
+      LIMIT 1
+    `;
+    if (!membership.length || membership[0].role !== "admin") {
+      res.status(403).json({ error: "Only team admins can remove members" });
+      return;
+    }
+
+    // Can't remove yourself as admin
+    if (targetUserId === currentUserId) {
+      res.status(400).json({ error: "Cannot remove yourself. Transfer admin role first." });
+      return;
+    }
+
+    await sql`DELETE FROM team_members WHERE team_id = ${teamId} AND user_id = ${targetUserId}`;
+    await sql`UPDATE users SET team_id = NULL WHERE id = ${targetUserId} AND team_id = ${teamId}`;
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Remove member error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── PATCH /api/teams/:id/members/:userId ──────────────────────────────────
+router.patch("/teams/:id/members/:userId", async (req: Request, res: Response) => {
+  try {
+    const currentUserId = await requireSession(req, res);
+    if (!currentUserId) return;
+    const sql = getSQL()!;
+
+    const teamId = req.params.id;
+    const targetUserId = req.params.userId;
+    const { role } = req.body;
+
+    const validRoles = ["admin", "member", "viewer"];
+    if (!role || !validRoles.includes(role)) {
+      res.status(400).json({ error: "Invalid role. Must be admin, member, or viewer." });
+      return;
+    }
+
+    // Verify current user is admin
+    const membership = await sql`
+      SELECT role FROM team_members
+      WHERE team_id = ${teamId} AND user_id = ${currentUserId}
+      LIMIT 1
+    `;
+    if (!membership.length || membership[0].role !== "admin") {
+      res.status(403).json({ error: "Only team admins can change roles" });
+      return;
+    }
+
+    await sql`
+      UPDATE team_members SET role = ${role}
+      WHERE team_id = ${teamId} AND user_id = ${targetUserId}
+    `;
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Change role error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

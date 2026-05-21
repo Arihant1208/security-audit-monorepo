@@ -9,6 +9,7 @@ dist/
 
 # Build artifacts
 *.tgz
+.next/
 
 # Audit output (generated per-project)
 audit-results/
