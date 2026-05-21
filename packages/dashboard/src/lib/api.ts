@@ -1,21 +1,27 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3334";
 
-let tokenGetter: (() => Promise<string | null>) | null = null;
+const TOKEN_KEY = "steve_session_token";
 
-/** Called from the AuthProvider to inject Clerk's getToken */
-export function setTokenGetter(fn: () => Promise<string | null>) {
-  tokenGetter = fn;
+/** Get the stored session token */
+export function getSessionToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+/** Store session token after login/signup */
+export function setSessionToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+/** Clear session token on logout */
+export function clearSessionToken() {
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 async function getAuthHeaders(): Promise<HeadersInit> {
-  if (typeof window === "undefined") return {};
-  try {
-    const token = await tokenGetter?.();
-    if (token) {
-      return { Authorization: `Bearer ${token}` };
-    }
-  } catch {
-    // token fetch failed
+  const token = getSessionToken();
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
   }
   return {};
 }
