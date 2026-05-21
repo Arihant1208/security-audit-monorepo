@@ -64,8 +64,8 @@ export function registerPipelineTools(server: McpServer): void {
         {
           phase: 8,
           name: "Report Generation",
-          description: "Generate structured markdown reports and data for the web dashboard. Produce: business context summary, architecture analysis with diagrams, security findings, license compliance, AI opportunities, remediation plan, and executive summary.",
-          tools: ["get-report-template"],
+          description: "Generate structured markdown reports and data for the web dashboard. Produce: business context summary, architecture analysis with diagrams, security findings, license compliance, AI opportunities, remediation plan, and executive summary. IMPORTANT: Call save-report at the end to persist results to the dashboard.",
+          tools: ["get-report-template", "save-report"],
         },
       ];
 

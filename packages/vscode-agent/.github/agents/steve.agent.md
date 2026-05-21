@@ -160,7 +160,8 @@ Produce the final deliverables:
    - License compliance status
    - AI opportunity highlights
    - Remediation roadmap
-5. **Generate `audit-results/steve-report.json`** — the dashboard-uploadable format:
+5. **Call `steve-security-agent/save-report`** to persist the report to the database/dashboard with all findings, scores, business context, and `phase_outputs` (the full markdown from each phase). This makes the report visible at the web dashboard with all phase reports viewable.
+6. **Generate `audit-results/steve-report.json`** — the dashboard-uploadable format (backup):
 
 ```json
 {
@@ -208,11 +209,23 @@ Produce the final deliverables:
       { "phase": 7, "status": "completed" },
       { "phase": 8, "status": "completed" }
     ]
+  },
+  "phase_outputs": {
+    "business_context": "Full markdown from 00-business-context.md",
+    "system_discovery": "Full markdown from 01-system-discovery.md",
+    "architecture": "Full markdown from 02-architecture.md",
+    "threat_model": "Full markdown from 03-threat-model.md",
+    "security_findings": "Full markdown from 04-security-findings.md",
+    "license_compliance": "Full markdown from 05-license-compliance.md",
+    "ai_opportunities": "Full markdown from 06-ai-opportunities.md",
+    "remediation_plan": "Full markdown from 07-remediation-plan.md",
+    "executive_summary": "Full markdown from 08-executive-summary.md",
+    "full_report": "Full markdown from FULL-REPORT.md"
   }
 }
 ```
 
-This file can be uploaded directly to the Steve dashboard via the "Upload Report" button or the `POST /api/reports` endpoint.
+This file can be uploaded directly to the Steve dashboard via the "Upload Report" button or the `POST /api/reports` endpoint (but `save-report` already handles this automatically).
 
 **Output:** Write `audit-results/08-executive-summary.md`, `audit-results/FULL-REPORT.md`, and `audit-results/steve-report.json`
 

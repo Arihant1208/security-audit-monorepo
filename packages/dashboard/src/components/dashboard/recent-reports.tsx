@@ -49,14 +49,14 @@ export function RecentReports({ reports }: Props) {
                   {r.risk_score !== null && (
                     <span
                       className={`text-sm font-semibold ${
-                        r.risk_score > 7
+                        Number(r.risk_score) > 7
                           ? "text-red-500"
-                          : r.risk_score > 4
+                          : Number(r.risk_score) > 4
                           ? "text-amber-500"
                           : "text-emerald-500"
                       }`}
                     >
-                      {r.risk_score.toFixed(1)}
+                      {Number(r.risk_score).toFixed(1)}
                     </span>
                   )}
                   {statusBadge(r.status)}

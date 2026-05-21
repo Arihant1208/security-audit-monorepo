@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useReport } from "@/lib/hooks";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -102,7 +103,7 @@ export default function ReportDetailPage() {
         </Card>
       </div>
 
-      {/* Tabs: Findings / Pipeline / Business Context */}
+      {/* Tabs: Findings / Pipeline / Business Context / Phase Outputs */}
       <Tabs defaultValue="findings">
         <TabsList>
           <TabsTrigger value="findings">
@@ -110,6 +111,9 @@ export default function ReportDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
           <TabsTrigger value="context">Business Context</TabsTrigger>
+          {report.phase_outputs && Object.keys(report.phase_outputs).length > 0 && (
+            <TabsTrigger value="phases">Phase Reports</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="findings" className="mt-4">
@@ -133,6 +137,12 @@ export default function ReportDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {report.phase_outputs && Object.keys(report.phase_outputs).length > 0 && (
+          <TabsContent value="phases" className="mt-4">
+            <PhaseOutputs outputs={report.phase_outputs} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -185,6 +195,63 @@ function SeverityBar({
         </div>
       </div>
       <span className="w-8 text-right text-sm font-semibold">{count}</span>
+    </div>
+  );
+}
+
+const PHASE_LABELS: Record<string, string> = {
+  business_context: "Business Context",
+  system_discovery: "System Discovery",
+  architecture: "Architecture Analysis",
+  threat_model: "Threat Model",
+  security_findings: "Security Findings",
+  license_compliance: "License & Compliance",
+  ai_opportunities: "AI & Security Opportunities",
+  remediation_plan: "Remediation Plan",
+  executive_summary: "Executive Summary",
+  full_report: "Full Report",
+};
+
+function PhaseOutputs({ outputs }: { outputs: Record<string, string> }) {
+  const [selected, setSelected] = React.useState<string>(Object.keys(outputs)[0] || "");
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Phase selector sidebar */}
+      <Card className="md:col-span-1">
+        <CardContent className="p-2">
+          <nav className="space-y-1">
+            {Object.keys(outputs).map((key) => (
+              <button
+                key={key}
+                onClick={() => setSelected(key)}
+                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                  selected === key
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted"
+                }`}
+              >
+                {PHASE_LABELS[key] || key.replace(/_/g, " ").replace(/^\d+-?/, "")}
+              </button>
+            ))}
+          </nav>
+        </CardContent>
+      </Card>
+
+      {/* Markdown content */}
+      <Card className="md:col-span-3">
+        <CardContent className="p-6">
+          {selected && outputs[selected] ? (
+            <div className="prose prose-sm dark:prose-invert max-w-none overflow-auto max-h-[70vh]">
+              <pre className="whitespace-pre-wrap text-sm font-mono bg-muted p-4 rounded-md">
+                {outputs[selected]}
+              </pre>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Select a phase to view its output</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -21,7 +21,8 @@ function scoreLabel(score: number) {
   return "Low";
 }
 
-export function RiskGauge({ score }: Props) {
+export function RiskGauge({ score: rawScore }: Props) {
+  const score = Number(rawScore) || 0;
   const fill = scoreColor(score);
   const data = [{ name: "Risk", value: score * 10, fill }];
 

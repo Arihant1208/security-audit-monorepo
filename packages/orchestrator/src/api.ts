@@ -348,7 +348,7 @@ router.post("/reports", async (req: Request, res: Response) => {
     if (!userId) return;
     const sql = getSQL()!;
 
-    const { project_name, status, risk_score, summary, business_context, findings, pipeline_state } = req.body;
+    const { project_name, status, risk_score, summary, business_context, findings, pipeline_state, phase_outputs } = req.body;
 
     if (!project_name) {
       res.status(400).json({ error: "project_name is required" });
@@ -368,7 +368,7 @@ router.post("/reports", async (req: Request, res: Response) => {
     const teamId = userRow[0]?.team_id ?? null;
 
     const rows = await sql`
-      INSERT INTO audit_reports (user_id, team_id, project_name, status, risk_score, summary, business_context, findings, pipeline_state, completed_at)
+      INSERT INTO audit_reports (user_id, team_id, project_name, status, risk_score, summary, business_context, findings, pipeline_state, phase_outputs, completed_at)
       VALUES (
         ${userId},
         ${teamId},
@@ -379,6 +379,7 @@ router.post("/reports", async (req: Request, res: Response) => {
         ${business_context ? JSON.stringify(business_context) : null}::jsonb,
         ${findings ? JSON.stringify(findings) : null}::jsonb,
         ${pipeline_state ? JSON.stringify(pipeline_state) : null}::jsonb,
+        ${phase_outputs ? JSON.stringify(phase_outputs) : null}::jsonb,
         ${reportStatus === "completed" ? new Date().toISOString() : null}
       )
       RETURNING id, project_name, status, risk_score, created_at

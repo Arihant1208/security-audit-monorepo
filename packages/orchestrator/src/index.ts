@@ -36,6 +36,7 @@ import { registerArchitectureTools } from "./tools/architecture.js";
 import { registerLicenseComplianceTools } from "./tools/license-compliance.js";
 import { registerAIOpportunityTools } from "./tools/ai-opportunities.js";
 import { registerPipelineTools } from "./tools/pipeline-control.js";
+import { registerSaveReportTool } from "./tools/save-report.js";
 
 const VERSION = "2.0.0";
 
@@ -60,6 +61,7 @@ function createServer(): McpServer {
   registerLicenseComplianceTools(server);
   registerAIOpportunityTools(server);
   registerPipelineTools(server);
+  registerSaveReportTool(server);
 
   return server;
 }
@@ -83,7 +85,7 @@ async function startHttp(port: number): Promise<void> {
 
   app.use((_req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Content-Type, X-API-Key, mcp-session-id");
+    res.header("Access-Control-Allow-Headers", "Content-Type, X-API-Key, Authorization, mcp-session-id");
     res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     res.header("Access-Control-Expose-Headers", "mcp-session-id");
     if (_req.method === "OPTIONS") {

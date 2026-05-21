@@ -94,6 +94,7 @@ export default function ReportsPage() {
         findings: json.findings,
         business_context: json.business_context,
         pipeline_state: json.pipeline_state,
+        phase_outputs: json.phase_outputs,
       });
       mutate();
       setUploadOpen(false);
@@ -195,14 +196,14 @@ function ReportRow({ report }: { report: ReportSummary }) {
           <div className="flex-shrink-0 text-center w-16">
             <div
               className={`text-2xl font-bold ${
-                (report.risk_score ?? 0) > 7
+                Number(report.risk_score ?? 0) > 7
                   ? "text-red-500"
-                  : (report.risk_score ?? 0) > 4
+                  : Number(report.risk_score ?? 0) > 4
                   ? "text-amber-500"
                   : "text-emerald-500"
               }`}
             >
-              {report.risk_score?.toFixed(1) ?? "—"}
+              {report.risk_score != null ? Number(report.risk_score).toFixed(1) : "—"}
             </div>
             <div className="text-xs text-muted-foreground">Risk</div>
           </div>

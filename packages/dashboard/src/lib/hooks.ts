@@ -25,6 +25,7 @@ export interface ReportDetail extends ReportSummary {
     affected_component?: string;
   }> | null;
   pipeline_state: Record<string, unknown> | null;
+  phase_outputs: Record<string, string> | null;
   user_id: string;
 }
 
@@ -131,6 +132,7 @@ export async function uploadReport(data: {
   findings?: unknown[];
   business_context?: Record<string, unknown>;
   pipeline_state?: Record<string, unknown>;
+  phase_outputs?: Record<string, string>;
 }) {
   return apiFetch<{ report: ReportSummary }>("/api/reports", {
     method: "POST",
