@@ -20,48 +20,18 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { requireAuth } from "./auth.js";
 import { apiRouter } from "./api.js";
-
-// ── Tool registrations ──────────────────────────────────────────────────────
-import { registerChecklistTools } from "./tools/checklists.js";
-import { registerKnowledgeBaseTools } from "./tools/knowledge-base.js";
-import { registerRiskScoringTools } from "./tools/risk-scoring.js";
-import { registerRemediationTools } from "./tools/remediation.js";
-import { registerReportingTools } from "./tools/reporting.js";
-import { registerMethodologyTools } from "./tools/methodology.js";
-import { registerThreatModelTools } from "./tools/threat-models.js";
-
-// ── New Steve tools ─────────────────────────────────────────────────────────
-import { registerBusinessDiscoveryTools } from "./tools/business-discovery.js";
-import { registerArchitectureTools } from "./tools/architecture.js";
-import { registerLicenseComplianceTools } from "./tools/license-compliance.js";
-import { registerAIOpportunityTools } from "./tools/ai-opportunities.js";
-import { registerPipelineTools } from "./tools/pipeline-control.js";
-import { registerSaveReportTool } from "./tools/save-report.js";
+import { registerAllTools } from "./tools/index.js";
 
 const VERSION = "2.0.0";
 
-function createServer(): McpServer {
+async function createServer(): Promise<McpServer> {
   const server = new McpServer({
     name: "steve-security-agent",
     version: VERSION,
   });
 
-  // ── Original audit tools (kept) ────────────────────────────────────────
-  registerChecklistTools(server);
-  registerKnowledgeBaseTools(server);
-  registerRiskScoringTools(server);
-  registerRemediationTools(server);
-  registerReportingTools(server);
-  registerMethodologyTools(server);
-  registerThreatModelTools(server);
-
-  // ── New Steve tools ────────────────────────────────────────────────────
-  registerBusinessDiscoveryTools(server);
-  registerArchitectureTools(server);
-  registerLicenseComplianceTools(server);
-  registerAIOpportunityTools(server);
-  registerPipelineTools(server);
-  registerSaveReportTool(server);
+  const toolCount = await registerAllTools(server);
+  console.error(`Registered ${toolCount} tool modules`);
 
   return server;
 }
@@ -70,7 +40,7 @@ function createServer(): McpServer {
 // Transport: stdio (local / enterprise)
 // ---------------------------------------------------------------------------
 async function startStdio(): Promise<void> {
-  const server = createServer();
+  const server = await createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Steve Security Agent running on stdio (v" + VERSION + ")");
@@ -83,10 +53,15 @@ async function startHttp(port: number): Promise<void> {
   const app = express();
   app.use(express.json());
 
+  // Configurable CORS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") ?? ["*"];
   app.use((_req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    const origin = _req.headers.origin;
+    if (allowedOrigins.includes("*") || (origin && allowedOrigins.includes(origin))) {
+      res.header("Access-Control-Allow-Origin", origin || "*");
+    }
     res.header("Access-Control-Allow-Headers", "Content-Type, X-API-Key, Authorization, mcp-session-id");
-    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, PATCH");
     res.header("Access-Control-Expose-Headers", "mcp-session-id");
     if (_req.method === "OPTIONS") {
       res.sendStatus(204);
@@ -99,7 +74,7 @@ async function startHttp(port: number): Promise<void> {
   const SESSION_TTL_MS = 30 * 60 * 1000;
   const sessionTimestamps = new Map<string, number>();
 
-  setInterval(() => {
+  const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [id, ts] of sessionTimestamps) {
       if (now - ts > SESSION_TTL_MS) {
@@ -111,7 +86,8 @@ async function startHttp(port: number): Promise<void> {
         sessionTimestamps.delete(id);
       }
     }
-  }, SESSION_TTL_MS).unref();
+  }, SESSION_TTL_MS);
+  cleanupInterval.unref();
 
   // POST /mcp
   app.post("/mcp", async (req, res) => {
@@ -135,7 +111,7 @@ async function startHttp(port: number): Promise<void> {
       });
       sessions.set(newSessionId, transport);
       sessionTimestamps.set(newSessionId, Date.now());
-      const server = createServer();
+      const server = await createServer();
       await server.connect(transport);
     } else {
       res.status(400).json({ error: "Bad request: no valid session" });
@@ -179,7 +155,7 @@ async function startHttp(port: number): Promise<void> {
       status: "ok",
       agent: "steve-security-agent",
       version: VERSION,
-      tools: 19,
+      tools: 20,
       phases: 9,
     });
   });
@@ -192,7 +168,7 @@ async function startHttp(port: number): Promise<void> {
   const __dirname = dirname(__filename);
   const siteDir = join(__dirname, "..", "..", "site");
   app.use(express.static(siteDir));
-  // SPA fallback — serve index.html for unmatched routes (but not /mcp or /api)
+  // SPA fallback
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/mcp") || req.path.startsWith("/api") || req.path.startsWith("/health")) {
       next();
@@ -201,9 +177,22 @@ async function startHttp(port: number): Promise<void> {
     res.sendFile(join(siteDir, "index.html"));
   });
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.error(`Steve Security Agent listening on http://localhost:${port}/mcp (v${VERSION})`);
   });
+
+  // Graceful shutdown
+  const shutdown = () => {
+    console.error("Shutting down...");
+    clearInterval(cleanupInterval);
+    for (const [, transport] of sessions) {
+      transport.close().catch(() => {});
+    }
+    sessions.clear();
+    server.close();
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }
 
 // ---------------------------------------------------------------------------
@@ -236,3 +225,4 @@ if (args.includes("--stdio")) {
     process.exit(1);
   });
 }
+
