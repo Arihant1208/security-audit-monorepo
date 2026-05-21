@@ -60,7 +60,7 @@ steve/
 │   ├── orchestrator/            ← MCP server + API + pipeline engine + static site
 │   ├── ai-engine/               ← Python FastAPI (code analysis, diagrams, licenses)
 │   ├── cli/                     ← CLI tool (steve audit/scan/license/diagram)
-│   ├── dashboard/               ← Next.js web dashboard (scaffold)
+│   ├── dashboard/               ← Next.js web dashboard (Clerk, shadcn/ui, Recharts)
 │   ├── vscode-agent/            ← Distributable VS Code agent + prompts
 │   ├── site/                    ← HTML/CSS/JS website (served by orchestrator)
 │   ├── db/                      ← PostgreSQL schema + migrations
@@ -127,6 +127,31 @@ pip install -e .
 uvicorn steve.main:app --host 0.0.0.0 --port 8100 --reload
 ```
 
+### Dashboard (Next.js)
+
+```bash
+cd packages/dashboard
+
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Copy env template
+cp .env.local.example .env.local
+# Edit .env.local with your Clerk keys (get from clerk.com/dashboard)
+
+# Run dev server
+npm run dev
+# → http://localhost:4000
+```
+
+**Required env vars for the dashboard:**
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk frontend key |
+| `CLERK_SECRET_KEY` | Clerk backend key |
+| `NEXT_PUBLIC_API_URL` | Orchestrator URL (default: `http://localhost:3334`) |
+
 ### Database
 
 ```bash
@@ -148,8 +173,8 @@ docker compose -f infra/docker-compose.yml up db -d
 | File | Purpose |
 |------|---------|
 | `src/index.ts` | Entry point — MCP server, HTTP/stdio transport, static site serving |
-| `src/api.ts` | Website REST API (auth, keys, reports, usage) — 11 endpoints |
-| `src/auth.ts` | Auth chain: skip → DB lookup → env var fallback |
+| `src/api.ts` | Website REST API (auth, keys, reports, usage, teams) — 16 endpoints |
+| `src/auth.ts` | Auth chain: skip → DB lookup → env var fallback → Clerk JWT |
 | `src/data.ts` | File access helpers with path traversal protection |
 | `src/db.ts` | Neon PostgreSQL client — key lookup, usage logging |
 | `src/tools/checklists.ts` | `list-checklists`, `get-checklist` |
@@ -201,3 +226,6 @@ docker compose -f infra/docker-compose.yml up db -d
 | `SECURITY_AUDIT_SKIP_AUTH` | `false` | Skip API key auth (dev only) |
 | `SECURITY_AUDIT_API_KEYS` | — | Comma-separated plaintext keys (fallback auth) |
 | `AI_ENGINE_URL` | `http://localhost:8100` | AI engine base URL |
+| `CLERK_SECRET_KEY` | — | Clerk secret key (enables JWT auth on orchestrator) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Clerk publishable key (dashboard only) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3334` | API URL for dashboard |

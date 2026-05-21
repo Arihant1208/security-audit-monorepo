@@ -72,6 +72,14 @@
       "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" }
     },
     {
+      "label": "Start Dashboard",
+      "type": "shell",
+      "command": "cd packages/dashboard && npm run dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "steve-services" }
+    },
+    {
       "label": "Docker: Start All Services",
       "type": "shell",
       "command": "docker compose -f infra/docker-compose.yml up -d",
@@ -105,6 +113,18 @@
     {
       "label": "Dev: Full Stack (DB + Orchestrator + AI Engine)",
       "dependsOn": ["Docker: Start DB Only", "Start Orchestrator (With DB)", "Start AI Engine"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Full App (Orchestrator + AI Engine + Dashboard)",
+      "dependsOn": ["Start Orchestrator (No Auth)", "Start AI Engine", "Start Dashboard"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Full App with DB (All Services)",
+      "dependsOn": ["Docker: Start DB Only", "Start Orchestrator (With DB)", "Start AI Engine", "Start Dashboard"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     },

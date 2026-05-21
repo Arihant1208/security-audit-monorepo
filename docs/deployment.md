@@ -669,6 +669,47 @@ curl https://YOUR-URL/api/auth/me
 
 ---
 
+## Dashboard Deployment
+
+The Next.js dashboard (`packages/dashboard`) can be deployed to Vercel, Netlify, or any Node.js hosting platform.
+
+### Vercel (Recommended)
+
+1. Push your repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → Import Project → select the repo
+3. Set **Root Directory** to `packages/dashboard`
+4. Add environment variables:
+   | Variable | Value |
+   |----------|-------|
+   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Your Clerk publishable key |
+   | `CLERK_SECRET_KEY` | Your Clerk secret key |
+   | `NEXT_PUBLIC_API_URL` | Your deployed orchestrator URL (e.g. `https://steve.yourcompany.com`) |
+5. Deploy
+
+### Self-Hosted (Docker)
+
+Use the existing `infra/Dockerfile.dashboard`:
+
+```bash
+docker build -f infra/Dockerfile.dashboard -t steve-dashboard .
+docker run -p 4000:4000 \
+  -e NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_... \
+  -e CLERK_SECRET_KEY=sk_... \
+  -e NEXT_PUBLIC_API_URL=http://orchestrator:3000 \
+  steve-dashboard
+```
+
+### Clerk Setup
+
+1. Create an account at [clerk.com](https://clerk.com)
+2. Create a new application
+3. Copy the publishable key and secret key
+4. Add your production domain to Clerk's allowed origins
+5. Configure sign-in methods (email, Google, GitHub, etc.)
+6. Set `CLERK_SECRET_KEY` on the orchestrator too (enables JWT auth for API calls from the dashboard)
+
+---
+
 ## Security Checklist (All Tiers)
 
 - [ ] Repository is **private**
@@ -679,3 +720,5 @@ curl https://YOUR-URL/api/auth/me
 - [ ] Health check / uptime monitoring configured
 - [ ] Database backups enabled
 - [ ] Logs retained for incident response
+- [ ] Clerk production instance configured (not development keys)
+- [ ] Dashboard `NEXT_PUBLIC_API_URL` points to HTTPS orchestrator

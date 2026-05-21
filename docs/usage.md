@@ -235,16 +235,32 @@ Formula: `Risk = min(10, Impact × Exploitability × Exposure + Business Context
 
 ---
 
-## Website Dashboard
+## Web Dashboard
 
-The website at the server URL provides:
+Steve includes a full-featured **Next.js dashboard** at http://localhost:4000 with:
 
-- **Sign up / Login** — session-based authentication
-- **Dashboard** — three tabs:
-  - **Reports** — view all audit reports with status and findings count
-  - **API Keys** — create, view, and revoke keys
-  - **Usage** — tool call analytics for the last 30 days
-- **Documentation** — embedded quick start and tool reference
+- **Clerk authentication** — secure sign-in/sign-up with SSO support
+- **Dashboard overview** — risk trend chart, severity breakdown, usage sparkline, key metrics
+- **Reports** — searchable/sortable list, detail view with risk gauge, findings table, pipeline progress
+- **API Keys** — create (one-time key reveal + copy), list active/revoked, revoke with confirmation
+- **Usage analytics** — daily usage bar chart, tool distribution pie chart, breakdown table
+- **Team management** — create teams, invite members by email, manage roles (admin/member/viewer)
+- **Responsive** — collapsible sidebar, mobile-friendly overlay menu
+
+### Setup
+
+```bash
+cd packages/dashboard
+cp .env.local.example .env.local
+# Add your Clerk keys from https://clerk.com/dashboard
+npm install --legacy-peer-deps
+npm run dev
+# → http://localhost:4000
+```
+
+### Legacy Website
+
+The original HTML/CSS website at the orchestrator URL (http://localhost:3000) is still available with session-based auth. It provides basic reports, API keys, and usage tabs.
 
 ### Uploading Findings to the Dashboard
 

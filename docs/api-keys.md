@@ -14,6 +14,14 @@ Steve uses API keys to authenticate MCP tool calls over HTTP. Keys follow the fo
 4. **Copy the key immediately** — it will not be shown again
 5. Use the key in your `.vscode/mcp.json` or CLI config
 
+### Via the Next.js Dashboard
+
+1. Go to http://localhost:4000 and sign in with Clerk
+2. Navigate to **API Keys** in the sidebar
+3. Click **Create Key**, give it a name
+4. Copy the key from the one-time reveal dialog
+5. The key is stored hashed — you cannot see it again
+
 ### Via Environment Variable (Development)
 
 For quick setups without a database:

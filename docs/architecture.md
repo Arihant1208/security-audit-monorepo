@@ -98,9 +98,17 @@ The core service. Registers **19 MCP tools** across 12 tool groups, runs the 9-p
 | `/api/keys` | GET | List API keys |
 | `/api/keys` | POST | Create API key |
 | `/api/keys/:id` | DELETE | Revoke API key |
-| `/api/reports` | GET | List audit reports |
+| `/api/reports` | GET | List audit reports (includes team reports) |
+| `/api/reports` | POST | Upload/create audit report |
 | `/api/reports/:id` | GET | Get report detail |
 | `/api/usage` | GET | Usage analytics (last 30 days) |
+| `/api/team` | GET | Get current user's team |
+| `/api/teams` | POST | Create a team |
+| `/api/teams/:id/invite` | POST | Invite a member by email |
+| `/api/teams/:id/members/:userId` | DELETE | Remove a team member |
+| `/api/teams/:id/members/:userId` | PATCH | Change team member role |
+
+**Auth:** Supports both legacy session tokens and Clerk JWTs (via `Authorization: Bearer <token>`).
 
 ### packages/ai-engine — Python FastAPI
 
@@ -134,7 +142,7 @@ Distributable files (zero IP, zero dependencies):
 - `steve-audit.prompt.md`, `steve-scan.prompt.md`, `steve-license.prompt.md`, `steve-diagram.prompt.md`
 - `mcp.json` — MCP server connection config
 
-### packages/site — Website
+### packages/site — Website (Legacy)
 
 Plain HTML/CSS/JS served by the orchestrator:
 - Landing page with pipeline visualization and pricing
@@ -142,17 +150,35 @@ Plain HTML/CSS/JS served by the orchestrator:
 - Dashboard with reports, API keys, and usage tabs
 - Documentation page
 
+> **Note:** The `packages/site` website is being replaced by `packages/dashboard` for authenticated features.
+
+### packages/dashboard — Next.js Dashboard
+
+Full-featured web dashboard built with Next.js 14, shadcn/ui, Tailwind CSS, and Recharts:
+- **Clerk authentication** — sign-in/sign-up with SSO support
+- **Dashboard overview** — risk trend chart, severity pie, usage sparkline, overview cards
+- **Reports** — list with search/sort, detail with risk gauge, findings table, pipeline progress
+- **API Keys** — create (one-time reveal), list, revoke
+- **Usage analytics** — daily bar chart, tool pie chart, breakdown table
+- **Team management** — create teams, invite members, manage roles (admin/member/viewer)
+- **Mobile responsive** — collapsible sidebar with mobile overlay
+
+Runs on port 4000. Communicates with the orchestrator API on port 3334.
+
 ### packages/db — Database
 
 PostgreSQL schema + migrations:
 
 | Table | Purpose |
 |-------|---------|
-| `users` | Accounts (email, password_hash, plan) |
+| `users` | Accounts (email, password_hash, plan, clerk_id) |
 | `api_keys` | SHA-256 hashed API keys with prefix display |
 | `sessions` | Session tokens for website auth |
-| `audit_reports` | Stored audit report data |
+| `audit_reports` | Stored audit report data (team_id for shared access) |
 | `usage_logs` | Per-tool-call analytics (tool, latency, timestamp) |
+| `teams` | Team name, creator |
+| `team_members` | User–team associations with role (admin/member/viewer) |
+| `team_invites` | Pending invitations by email with token |
 
 ### data/ — Security Knowledge Base
 

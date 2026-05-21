@@ -54,7 +54,7 @@ curl http://localhost:3000/health
 | PostgreSQL 16 | 5433 | `postgresql://steve:steve_local@localhost:5433/steve` | Database |
 | Orchestrator | 3000 | http://localhost:3000 | MCP server + Website + API |
 | AI Engine | 8100 | http://localhost:8100 | Python analysis service |
-| Dashboard | 4000 | http://localhost:4000 | Next.js dashboard |
+| Dashboard | 4000 | http://localhost:4000 | Next.js dashboard (Clerk auth) |
 
 ### Default Credentials
 
@@ -62,6 +62,7 @@ curl http://localhost:3000/health
 - **DB user:** `steve` / `steve_local`
 - **Test API key:** `steve_test_localdev1234567890abcdef`
 - **Website:** Sign up via http://localhost:3000/signup
+- **Dashboard:** Requires Clerk keys — sign up at [clerk.com](https://clerk.com) and add keys to `packages/dashboard/.env.local`
 
 ---
 
@@ -101,6 +102,8 @@ psql "postgresql://steve:steve_local@localhost:5433/steve" \
 psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/migrations/002-website-auth.sql
 psql "postgresql://steve:steve_local@localhost:5433/steve" \
+  -f packages/db/migrations/003-teams.sql
+psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/seed.sql
 
 # Start orchestrator with DB
@@ -132,6 +135,41 @@ uvicorn steve.main:app --host 0.0.0.0 --port 8100 --reload
 ```
 
 Then set `AI_ENGINE_URL=http://localhost:8100` when starting the orchestrator.
+
+---
+
+## Dashboard Only (No Docker)
+
+```bash
+cd packages/dashboard
+
+# Install deps
+npm install --legacy-peer-deps
+
+# Set up environment
+cp .env.local.example .env.local
+# Edit .env.local — add Clerk keys from https://clerk.com/dashboard
+
+# Run
+npm run dev
+# → http://localhost:4000
+```
+
+The dashboard connects to the orchestrator API at `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:3334`). Make sure the orchestrator is running.
+
+---
+
+## VS Code Tasks (Recommended)
+
+The repo includes pre-configured VS Code tasks. Press `Ctrl+Shift+P` → "Tasks: Run Task":
+
+| Task | What it starts |
+|------|---------------|
+| **Dev: Full App (Orchestrator + AI Engine + Dashboard)** | All 3 services, no Docker, no auth |
+| **Dev: Full App with DB (All Services)** | Postgres + Orchestrator + AI Engine + Dashboard |
+| **Dev: Orchestrator + AI Engine (No Docker)** | Just backend services (no dashboard) |
+| **Start Dashboard** | Dashboard alone on port 4000 |
+| **Docker: Start All Services** | Full stack via Docker Compose |
 
 ---
 
@@ -204,6 +242,9 @@ If the server is already running (locally or via Docker):
 | `SECURITY_AUDIT_SKIP_AUTH` | `false` | No | Skip API key auth (dev only) |
 | `SECURITY_AUDIT_API_KEYS` | — | No | Comma-separated plaintext keys |
 | `AI_ENGINE_URL` | `http://localhost:8100` | No | AI engine base URL |
+| `CLERK_SECRET_KEY` | — | No | Clerk secret (enables Clerk JWT auth on orchestrator) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Dashboard | Clerk frontend key |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3334` | Dashboard | API URL for the dashboard |
 
 ---
 
