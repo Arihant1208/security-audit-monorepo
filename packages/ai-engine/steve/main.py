@@ -8,7 +8,7 @@ Communicates with the TypeScript orchestrator via HTTP.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import business, architecture, licenses, ai_opportunities, health
+from .routers import business, architecture, licenses, ai_opportunities, health, code_analysis
 
 app = FastAPI(
     title="Steve AI Engine",
@@ -28,3 +28,4 @@ app.include_router(business.router, prefix="/api/v1/business", tags=["Business D
 app.include_router(architecture.router, prefix="/api/v1/architecture", tags=["Architecture"])
 app.include_router(licenses.router, prefix="/api/v1/licenses", tags=["License Compliance"])
 app.include_router(ai_opportunities.router, prefix="/api/v1/ai", tags=["AI Opportunities"])
+app.include_router(code_analysis.router, prefix="/api/v1/code", tags=["Code Analysis"])

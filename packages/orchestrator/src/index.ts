@@ -18,9 +18,10 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { requireAuth } from "./auth.js";
+import { requireAuth } from "./infra/auth.js";
 import { apiRouter } from "./api.js";
 import { registerAllTools } from "./tools/index.js";
+import { startWorker, stopWorker } from "./pipeline/worker.js";
 
 const VERSION = "2.0.0";
 
@@ -179,11 +180,17 @@ async function startHttp(port: number): Promise<void> {
 
   const server = app.listen(port, () => {
     console.error(`Steve Security Agent listening on http://localhost:${port}/mcp (v${VERSION})`);
+
+    // Start background job worker if database is configured
+    if (process.env.DATABASE_URL) {
+      startWorker();
+    }
   });
 
   // Graceful shutdown
   const shutdown = () => {
     console.error("Shutting down...");
+    stopWorker();
     clearInterval(cleanupInterval);
     for (const [, transport] of sessions) {
       transport.close().catch(() => {});

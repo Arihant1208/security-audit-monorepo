@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build the MCP server
+# Build the Steve orchestrator (MCP server + pipeline engine)
 # Run from repo root: bash scripts/build.sh
 
-echo "==> Building MCP server..."
-npm run build -w packages/mcp-server
-echo "==> Build complete. Output: packages/mcp-server/dist/"
+echo "==> Building all packages..."
+npm run build
+echo "==> Build complete."

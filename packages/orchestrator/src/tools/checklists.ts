@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { readDataFile } from "../data.js";
+import { readDataFile } from "../infra/data.js";
 
 const CHECKLIST_MAP: Record<string, string> = {
   architecture: "01-architecture",

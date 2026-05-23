@@ -4,7 +4,7 @@
 
 import { Router } from "express";
 import { z } from "zod";
-import { getSQL } from "../sql-client.js";
+import { getSQL } from "../infra/sql-client.js";
 import { asyncHandler, AppError, validate, requireSession, type AuthenticatedRequest } from "../middleware/index.js";
 
 const router = Router();

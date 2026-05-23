@@ -23,15 +23,15 @@ Complete guide to using Steve — from setup to your first autonomous security a
 **New project (empty directory):**
 
 ```bash
-npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent my-project
+npx degit Arihant1208/security-audit-monorepo/packages/vscode my-project
 ```
 
 **Existing project (already has files):**
 
 ```bash
 # From your project root:
-npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.vscode .vscode --force
-npx degit Arihant1208/security-audit-monorepo/packages/vscode-agent/.github .github --force
+npx degit Arihant1208/security-audit-monorepo/packages/vscode/.vscode .vscode --force
+npx degit Arihant1208/security-audit-monorepo/packages/vscode/.github .github --force
 ```
 
 Or manually copy the files:
@@ -39,9 +39,9 @@ Or manually copy the files:
 ```bash
 # Clone temporarily and copy what you need
 git clone --depth 1 --sparse https://github.com/Arihant1208/security-audit-monorepo.git /tmp/steve
-cd /tmp/steve && git sparse-checkout set packages/vscode-agent
-cp -r packages/vscode-agent/.vscode /path/to/your-project/
-cp -r packages/vscode-agent/.github /path/to/your-project/
+cd /tmp/steve && git sparse-checkout set packages/vscode
+cp -r packages/vscode/.vscode /path/to/your-project/
+cp -r packages/vscode/.github /path/to/your-project/
 rm -rf /tmp/steve
 ```
 

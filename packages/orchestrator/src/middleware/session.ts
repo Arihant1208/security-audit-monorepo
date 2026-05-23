@@ -5,8 +5,8 @@
 
 import type { Request, Response, NextFunction } from "express";
 import { createHash } from "node:crypto";
-import { getSQL } from "../sql-client.js";
-import { validateClerkJWT } from "../auth.js";
+import { getSQL } from "../infra/sql-client.js";
+import { validateClerkJWT } from "../infra/auth.js";
 import { AppError } from "./errors.js";
 
 function hashToken(token: string): string {

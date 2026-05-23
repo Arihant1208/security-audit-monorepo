@@ -4,9 +4,13 @@ Business Discovery — auto-infer business context from project artifacts.
 
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from ..llm import is_llm_available, complete_json
+
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -90,4 +94,61 @@ async def infer_business_context(req: InferRequest) -> BusinessContext:
     if any(w in combined for w in ["database", "postgres", "mysql", "mongo", "redis"]):
         ctx.critical_functions.append("data persistence")
 
+    # ── LLM Enhancement: if available, use AI for deeper analysis ─────────
+    if is_llm_available() and (req.readme or req.manifest):
+        try:
+            ctx = await _llm_enhance_context(req, ctx)
+        except Exception as e:
+            logger.warning(f"LLM enhancement failed, using heuristic results: {e}")
+
     return ctx
+
+
+async def _llm_enhance_context(req: InferRequest, heuristic_ctx: BusinessContext) -> BusinessContext:
+    """Use LLM to enhance heuristic business context inference."""
+    artifacts = []
+    if req.readme:
+        artifacts.append(f"README:\n{req.readme[:3000]}")
+    if req.manifest:
+        artifacts.append(f"MANIFEST:\n{req.manifest[:2000]}")
+    if req.config_files:
+        for name, content in list(req.config_files.items())[:5]:
+            artifacts.append(f"CONFIG ({name}):\n{content[:500]}")
+
+    system_prompt = """You are a security auditor analyzing a software project. 
+Based on the project artifacts, infer the business context. Return a JSON object with:
+- description: Brief description of what this project does (1-2 sentences)
+- industry: One of: healthcare, finance, saas, ecommerce, education, government, media, gaming, iot, other
+- user_types: List of user types (e.g., "end-users", "admins", "api-consumers")
+- revenue_model: How it makes money (e.g., "subscription", "transaction-fees", "advertising", null)
+- data_types: List of data types handled (e.g., "PII", "credentials", "financial", "health-records", "public")
+- data_sensitivity: One of: public, internal, confidential, restricted
+- compliance_requirements: List of applicable frameworks (e.g., "hipaa", "pci-dss", "gdpr", "soc2", "ccpa")
+- risk_tolerance: One of: low, moderate, high
+- scale: Description of expected scale
+- critical_functions: List of business-critical functions
+
+Return ONLY valid JSON, no explanation."""
+
+    user_prompt = f"Project: {req.project_name}\n\n" + "\n\n".join(artifacts)
+
+    result = await complete_json(system_prompt, user_prompt)
+
+    # Merge LLM results with heuristic (LLM wins on conflicts, but keep high-confidence heuristics)
+    return BusinessContext(
+        description=result.get("description", heuristic_ctx.description),
+        industry=result.get("industry", heuristic_ctx.industry),
+        user_types=result.get("user_types", heuristic_ctx.user_types),
+        revenue_model=result.get("revenue_model", heuristic_ctx.revenue_model),
+        data_types=list(set(result.get("data_types", []) + heuristic_ctx.data_types)),
+        data_sensitivity=result.get("data_sensitivity", heuristic_ctx.data_sensitivity),
+        compliance_requirements=list(
+            set(result.get("compliance_requirements", []) + heuristic_ctx.compliance_requirements)
+        ),
+        risk_tolerance=result.get("risk_tolerance", heuristic_ctx.risk_tolerance),
+        scale=result.get("scale", heuristic_ctx.scale),
+        critical_functions=list(
+            set(result.get("critical_functions", []) + heuristic_ctx.critical_functions)
+        ),
+        confidence={k: 0.9 for k in result.keys()},  # LLM results get higher confidence
+    )

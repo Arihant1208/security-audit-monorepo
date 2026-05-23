@@ -5,7 +5,7 @@
 import { Router, type Response } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { getSQL } from "../sql-client.js";
+import { getSQL } from "../infra/sql-client.js";
 import { asyncHandler, AppError, validate, requireSession, type AuthenticatedRequest } from "../middleware/index.js";
 import { authLimiter } from "../middleware/rate-limit.js";
 

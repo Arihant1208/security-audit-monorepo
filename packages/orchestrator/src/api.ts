@@ -12,6 +12,7 @@ import { keysRouter } from "./routes/keys.routes.js";
 import { reportsRouter } from "./routes/reports.routes.js";
 import { usageRouter } from "./routes/usage.routes.js";
 import { teamsRouter } from "./routes/teams.routes.js";
+import { jobsRouter } from "./routes/jobs.routes.js";
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use(keysRouter);
 router.use(reportsRouter);
 router.use(usageRouter);
 router.use(teamsRouter);
+router.use(jobsRouter);
 
 // Centralized error handler (must be last)
 router.use(errorHandler);

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { readDataFile } from "../data.js";
+import { readDataFile } from "../infra/data.js";
 
 const PHASE_MAP: Record<number, string> = {
   1: "01-system-discovery",

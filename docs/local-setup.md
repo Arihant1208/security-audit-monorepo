@@ -104,6 +104,8 @@ psql "postgresql://steve:steve_local@localhost:5433/steve" \
 psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/migrations/003-teams.sql
 psql "postgresql://steve:steve_local@localhost:5433/steve" \
+  -f packages/db/migrations/005-pipeline-jobs.sql
+psql "postgresql://steve:steve_local@localhost:5433/steve" \
   -f packages/db/seed.sql
 
 # Start orchestrator with DB

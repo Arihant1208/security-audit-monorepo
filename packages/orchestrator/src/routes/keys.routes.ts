@@ -4,7 +4,7 @@
 
 import { Router } from "express";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { getSQL } from "../sql-client.js";
+import { getSQL } from "../infra/sql-client.js";
 import { asyncHandler, requireSession, type AuthenticatedRequest } from "../middleware/index.js";
 
 const router = Router();

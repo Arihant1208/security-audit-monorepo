@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { readDataFile, listDataFiles } from "../data.js";
+import { readDataFile, listDataFiles } from "../infra/data.js";
 
 const CATEGORY_DIRS: Record<string, string> = {
   identity: "identity-attacks",

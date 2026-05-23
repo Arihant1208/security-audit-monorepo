@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { readDataFile, listDataFiles } from "../data.js";
+import { readDataFile, listDataFiles } from "../infra/data.js";
 
 const REMEDIATION_MAP: Record<string, string> = {
   injection: "injection-prevention",

@@ -17,10 +17,16 @@
     "start:stdio": "npm run start:stdio -w packages/orchestrator",
     "dev": "npm run dev -w packages/orchestrator",
     "steve": "npm run start -w packages/cli --",
-    "db:migrate": "psql $DATABASE_URL -f packages/db/migrations/001-init.sql",
+    "db:migrate": "psql $DATABASE_URL -f packages/db/migrations/001-init.sql && psql $DATABASE_URL -f packages/db/migrations/002-website-auth.sql && psql $DATABASE_URL -f packages/db/migrations/003-teams.sql && psql $DATABASE_URL -f packages/db/migrations/004-phase-outputs.sql && psql $DATABASE_URL -f packages/db/migrations/005-pipeline-jobs.sql",
     "db:seed": "psql $DATABASE_URL -f packages/db/seed.sql",
     "docker:up": "docker compose -f infra/docker-compose.yml up -d",
     "docker:down": "docker compose -f infra/docker-compose.yml down",
-    "ai-engine": "cd packages/ai-engine && python -m uvicorn steve.main:app --reload --port 8100"
+    "ai-engine": "cd packages/ai-engine && python -m uvicorn steve.main:app --reload --port 8100",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "vitest": "^4.1.7"
   }
 }

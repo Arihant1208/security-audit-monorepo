@@ -29,9 +29,7 @@ steve/
 │   ├── ai-engine/               Python FastAPI (code analysis, diagrams, license scan)
 │   ├── cli/                     CLI tool (`steve audit`, `steve scan`, etc.)
 │   ├── dashboard/               Next.js interactive web dashboard
-│   ├── vscode-agent/            VS Code agent + prompts (distributable)
-│   ├── mcp-server/ (legacy)     Original MCP server (kept for reference)
-│   ├── client/ (legacy)         Original 3-agent client (superseded by vscode-agent)
+│   ├── vscode/                  VS Code agent + prompts (distributable)
 │   ├── site/                    Landing page
 │   └── db/                      PostgreSQL schema & migrations
 ├── infra/                       Docker, docker-compose, Fly.io, Render
@@ -59,7 +57,7 @@ curl http://localhost:3000/health
 
 ### Use in a Project (VS Code)
 
-Copy `packages/vscode-agent/` contents into your project, then use:
+Copy `packages/vscode/` contents into your project, then use:
 
 | Command | Action |
 |---------|--------|

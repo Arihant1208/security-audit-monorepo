@@ -61,11 +61,9 @@ steve/
 │   ├── ai-engine/               ← Python FastAPI (code analysis, diagrams, licenses)
 │   ├── cli/                     ← CLI tool (steve audit/scan/license/diagram)
 │   ├── dashboard/               ← Next.js web dashboard (Clerk, shadcn/ui, Recharts)
-│   ├── vscode-agent/            ← Distributable VS Code agent + prompts
+│   ├── vscode/                  ← Distributable VS Code agent + prompts
 │   ├── site/                    ← HTML/CSS/JS website (served by orchestrator)
 │   ├── db/                      ← PostgreSQL schema + migrations
-│   ├── mcp-server/ (legacy)     ← Original MCP server
-│   └── client/ (legacy)         ← Original 3-agent client
 ├── infra/                       ← Docker, docker-compose, Fly.io, Render configs
 ├── docs/                        ← This documentation
 └── scripts/                     ← Setup, build, distribution helpers
@@ -170,13 +168,20 @@ docker compose -f infra/docker-compose.yml up db -d
 
 ## Code Structure — Orchestrator
 
-| File | Purpose |
+| File/Directory | Purpose |
 |------|---------|
 | `src/index.ts` | Entry point — MCP server, HTTP/stdio transport, static site serving |
 | `src/api.ts` | Website REST API (auth, keys, reports, usage, teams) — 16 endpoints |
-| `src/auth.ts` | Auth chain: skip → DB lookup → env var fallback → Clerk JWT |
-| `src/data.ts` | File access helpers with path traversal protection |
-| `src/db.ts` | Neon PostgreSQL client — key lookup, usage logging |
+| `src/infra/auth.ts` | Auth chain: skip → DB lookup → env var fallback → Clerk JWT |
+| `src/infra/data.ts` | File access helpers with path traversal protection |
+| `src/infra/db.ts` | PostgreSQL client — key lookup, usage logging |
+| `src/infra/sql-client.ts` | Auto-detects Neon vs standard pg, tagged-template SQL interface |
+| `src/infra/schema.ts` | Drizzle ORM table definitions (users, apiKeys, usageLogs, pipelineJobs) |
+| `src/infra/drizzle.ts` | Lazy-initialized Drizzle client with connection pooling |
+| `src/pipeline/index.ts` | StevePipeline class, createInitialState(), getPipelineSummary() |
+| `src/pipeline/queue.ts` | PG-backed job queue (enqueue, claim, complete, fail, cancel) |
+| `src/pipeline/worker.ts` | Background poll loop (5s interval, max 2 concurrent, stale lock recovery) |
+| `src/routes/jobs.routes.ts` | POST/GET /jobs, GET/POST /jobs/:id endpoints |
 | `src/tools/checklists.ts` | `list-checklists`, `get-checklist` |
 | `src/tools/knowledge-base.ts` | `list-attack-patterns`, `get-attack-pattern`, `match-vulnerabilities` |
 | `src/tools/risk-scoring.ts` | `calculate-risk-score` |
@@ -212,7 +217,7 @@ docker compose -f infra/docker-compose.yml up db -d
 
 ### Test MCP in VS Code
 
-1. Set up `.vscode/mcp.json` in a test project (copy from `packages/vscode-agent/`)
+1. Set up `.vscode/mcp.json` in a test project (copy from `packages/vscode/`)
 2. Point server URL to `http://localhost:3000/mcp`
 3. Use API key `steve_test_localdev1234567890abcdef` (or set `SKIP_AUTH=true`)
 4. Open Copilot Chat → `@steve List the available security checklists`
@@ -222,10 +227,57 @@ docker compose -f infra/docker-compose.yml up db -d
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `PORT` | `3000` | HTTP server port |
-| `DATABASE_URL` | — | PostgreSQL connection string (Neon) |
+| `DATABASE_URL` | — | PostgreSQL connection string (Neon or local) |
 | `SECURITY_AUDIT_SKIP_AUTH` | `false` | Skip API key auth (dev only) |
 | `SECURITY_AUDIT_API_KEYS` | — | Comma-separated plaintext keys (fallback auth) |
 | `AI_ENGINE_URL` | `http://localhost:8100` | AI engine base URL |
 | `CLERK_SECRET_KEY` | — | Clerk secret key (enables JWT auth on orchestrator) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Clerk publishable key (dashboard only) |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3334` | API URL for dashboard |
+| `OPENAI_API_KEY` | — | OpenAI API key (enables LLM code analysis in AI engine) |
+| `ANTHROPIC_API_KEY` | — | Anthropic API key (alternative LLM provider) |
+| `LLM_PROVIDER` | auto-detect | Force LLM provider: `openai` or `anthropic` |
+| `LLM_MODEL` | — | Override model name (e.g. `gpt-4o`, `claude-sonnet-4-20250514`) |
+
+## Testing
+
+### TypeScript (Vitest)
+
+```bash
+# Run all tests
+npx vitest run
+
+# Watch mode
+npx vitest
+
+# Run specific test file
+npx vitest run packages/orchestrator/tests/pipeline.test.ts
+```
+
+Tests are in `packages/*/tests/` directories. The test suite covers pipeline state management, job queue operations, and API routes.
+
+### Python (pytest)
+
+```bash
+cd packages/ai-engine
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+### Database Migrations
+
+When adding new tables, create a new SQL migration file:
+
+```bash
+# Create migration
+touch packages/db/migrations/006-my-feature.sql
+
+# Apply it
+psql "$DATABASE_URL" -f packages/db/migrations/006-my-feature.sql
+```
+
+For Drizzle ORM schema changes, update `packages/orchestrator/src/infra/schema.ts` and generate a migration:
+
+```bash
+npx drizzle-kit generate
+```

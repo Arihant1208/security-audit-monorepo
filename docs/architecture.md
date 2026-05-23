@@ -2,7 +2,7 @@
 
 ## Overview
 
-Steve is a **multi-service autonomous security agent** built as a monorepo with 7 packages. The system runs a 9-phase pipeline that starts from business context discovery and progresses through architecture mapping, threat modeling, 12-layer security auditing, license compliance, AI opportunity analysis, and report generation.
+Steve is a **multi-service autonomous security agent** built as a monorepo with 6 packages. The system runs a 9-phase pipeline that starts from business context discovery and progresses through architecture mapping, threat modeling, 12-layer security auditing, license compliance, AI opportunity analysis, and report generation.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -18,16 +18,17 @@ Steve is a **multi-service autonomous security agent** built as a monorepo with 
 │  Orchestrator (packages/orchestrator)                                  │
 │                                                                        │
 │  ┌──────────────┐ ┌──────────────┐ ┌────────────┐ ┌───────────────┐  │
-│  │ MCP Server   │ │  Pipeline    │ │  Website   │ │  Static Site  │  │
-│  │ (19 tools)   │ │  Engine      │ │  API (/api)│ │  Serving      │  │
-│  └──────┬───────┘ └──────┬───────┘ └─────┬──────┘ └───────────────┘  │
-└─────────┼────────────────┼────────────────┼───────────────────────────┘
-          │                │                │
-          ▼                ▼                ▼
+│  │ MCP Server   │ │  Pipeline    │ │  REST API  │ │  Job Queue    │  │
+│  │ (19 tools)   │ │  Engine      │ │  (/api)    │ │  (PG-backed)  │  │
+│  └──────┬───────┘ └──────┬───────┘ └─────┬──────┘ └──────┬────────┘  │
+└─────────┼────────────────┼────────────────┼───────────────┼───────────┘
+          │                │                │               │
+          ▼                ▼                ▼               ▼
 ┌──────────────────┐ ┌─────────────────┐ ┌──────────────────────────────┐
-│  Knowledge Base  │ │  AI Engine      │ │  PostgreSQL (Neon)           │
+│  Knowledge Base  │ │  AI Engine      │ │  PostgreSQL (Neon/local)     │
 │  data/ (81+ md)  │ │  Python FastAPI │ │  users, api_keys, sessions,  │
-│                  │ │  :8100          │ │  audit_reports, usage_logs    │
+│                  │ │  + LLM (GPT/    │ │  audit_reports, usage_logs,  │
+│                  │ │   Claude) :8100 │ │  pipeline_jobs               │
 └──────────────────┘ └─────────────────┘ └──────────────────────────────┘
 ```
 
@@ -62,9 +63,19 @@ TypeScript type definitions shared across all packages:
 | `state.ts` | `AuditState`, `StateStore` |
 | `index.ts` | Re-exports all types |
 
-### packages/orchestrator — MCP Server + Pipeline Engine + Web API
+### packages/orchestrator — MCP Server + Pipeline Engine + Web API + Job Queue
 
-The core service. Registers **19 MCP tools** across 12 tool groups, runs the 9-phase pipeline, serves the REST API for the website, and hosts the static site.
+The core service. Registers **19 MCP tools** across 12 tool groups, runs the 9-phase pipeline, serves the REST API, hosts the static site, and runs an async job worker.
+
+**Internal Structure:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/infra/` | Shared infrastructure — auth, DB, Drizzle ORM, SQL client, data file access |
+| `src/pipeline/` | Pipeline engine, PG-backed job queue, background worker |
+| `src/routes/` | Express route handlers (auth, keys, reports, usage, teams, jobs) |
+| `src/tools/` | MCP tool registrations (checklists, KB, risk, remediation, etc.) |
+| `src/middleware/` | Session auth, rate limiting, error handling, validation |
 
 **MCP Tools (19):**
 
@@ -107,20 +118,28 @@ The core service. Registers **19 MCP tools** across 12 tool groups, runs the 9-p
 | `/api/teams/:id/invite` | POST | Invite a member by email |
 | `/api/teams/:id/members/:userId` | DELETE | Remove a team member |
 | `/api/teams/:id/members/:userId` | PATCH | Change team member role |
+| `/api/jobs` | POST | Enqueue async pipeline job |
+| `/api/jobs` | GET | List current user's jobs |
+| `/api/jobs/:id` | GET | Get job status + progress |
+| `/api/jobs/:id/cancel` | POST | Cancel a pending/running job |
 
 **Auth:** Supports both legacy session tokens and Clerk JWTs (via `Authorization: Bearer <token>`).
 
-### packages/ai-engine — Python FastAPI
+### packages/ai-engine — Python FastAPI + LLM Integration
 
-Analysis service for tasks requiring Python ML/NLP libraries:
+Analysis service for tasks requiring Python ML/NLP libraries. Supports direct LLM calls (OpenAI/Anthropic) for deep code analysis when API keys are configured, with graceful fallback to heuristic-only mode.
 
 | Router | Endpoints |
 |--------|-----------|
-| `business` | `/api/business/analyze` — industry classification, compliance mapping |
-| `architecture` | `/api/architecture/diagram` — Mermaid diagram generation |
-| `licenses` | `/api/licenses/scan` — dependency license detection |
-| `ai_opportunities` | `/api/ai/opportunities` — AI/ML integration opportunities |
-| Health | `/health` — readiness check |
+| `business` | `/api/v1/business/infer` — industry classification, compliance mapping (LLM-enhanced) |
+| `architecture` | `/api/v1/architecture/diagram` — Mermaid diagram generation |
+| `licenses` | `/api/v1/licenses/analyze` — dependency license detection |
+| `ai_opportunities` | `/api/v1/ai/opportunities` — AI/ML integration opportunities |
+| `code_analysis` | `/api/v1/code/analyze` — LLM-powered vulnerability detection |
+| `code_analysis` | `/api/v1/code/fix` — LLM-powered fix generation |
+| Health | `/api/v1/health` — readiness check |
+
+**LLM Configuration:** Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` + `LLM_PROVIDER` (openai/anthropic). Without keys, endpoints fall back to heuristic pattern matching.
 
 ### packages/cli — Command-Line Interface
 
@@ -135,11 +154,13 @@ steve report ./project      Generate reports from existing scan
 steve dashboard             Launch web dashboard
 ```
 
-### packages/vscode-agent — VS Code Integration
+### packages/vscode — VS Code Integration
 
-Distributable files (zero IP, zero dependencies):
-- `steve.agent.md` — agent personality + behavior rules
-- `steve-audit.prompt.md`, `steve-scan.prompt.md`, `steve-license.prompt.md`, `steve-diagram.prompt.md`
+Distributable agent files (zero dependencies):
+- `steve.agent.md` — unified 9-phase autonomous agent
+- `security-scanner.agent.md` — scan-only agent (read-only)
+- `security-fixer.agent.md` — fix agent (recommends + applies patches)
+- Prompt files: `steve-audit`, `steve-scan`, `steve-license`, `steve-diagram`, `fix-vulnerabilities`
 - `mcp.json` — MCP server connection config
 
 ### packages/site — Website (Legacy)
@@ -179,6 +200,9 @@ PostgreSQL schema + migrations:
 | `teams` | Team name, creator |
 | `team_members` | User–team associations with role (admin/member/viewer) |
 | `team_invites` | Pending invitations by email with token |
+| `pipeline_jobs` | Async pipeline job queue (status, progress, results, claimed_at) |
+
+**ORM:** Drizzle ORM (`packages/orchestrator/src/infra/schema.ts`) provides typed access for new code alongside raw SQL for existing queries.
 
 ### data/ — Security Knowledge Base
 
@@ -235,11 +259,12 @@ Subsequent requests: X-Session-Token header
 
 ## Security Boundaries
 
-- **Agent files** (packages/vscode-agent) — public, contain zero knowledge
+- **Agent files** (packages/vscode) — public, contain zero knowledge
 - **MCP server** — requires API key for HTTP access, no auth needed for stdio
 - **data/** — never leaves the server; tools return content, agents don't access directly
 - **API keys** — stored as SHA-256 hashes; server never stores plaintext
 - **Passwords** — salted SHA-256 hashed (production should use bcrypt/argon2)
 - **Sessions** — SHA-256 hashed tokens with 7-day expiry
-- **Path traversal protection** — `data.ts` prevents reading outside `data/`
+- **Path traversal protection** — `infra/data.ts` prevents reading outside `data/`
+- **Job queue** — PG advisory locks (`FOR UPDATE SKIP LOCKED`) prevent double-processing
 - **CORS** — configured for cross-origin MCP access

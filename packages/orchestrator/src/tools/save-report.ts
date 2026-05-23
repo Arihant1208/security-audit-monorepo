@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { getSQL } from "../sql-client.js";
+import { getSQL } from "../infra/sql-client.js";
 
 /**
  * save-report tool — persists audit results to the database so they appear
